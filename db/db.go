@@ -4,18 +4,27 @@ package db
 import (
 	"database/sql"
 	"log"
+	"os"
 
+	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
 )
 
 var DB *sql.DB
 
 func InitDB() {
-	var err error
-	DB, err = sql.Open("sqlite", "./core.db")
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found or failed to load it")
+	}
+
+	dbPath := os.Getenv("DB_PATH")
+
+	DB, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatal("Failed to open database:", err)
 	}
+
 	createTable := `
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
