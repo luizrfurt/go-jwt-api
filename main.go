@@ -1,4 +1,3 @@
-// main.go
 package main
 
 import (
@@ -11,6 +10,11 @@ import (
 func main() {
 	db.InitDB()
 	r := gin.Default()
+
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "API is running"})
+	})
+
 	routes.SetupRoutes(r)
 	r.Run(":8080")
 }
