@@ -1,0 +1,234 @@
+type: collection.insomnia.rest/5.0
+name: go-jwt-api
+meta:
+  id: wrk_cb9f987d0e2a42f785894a298232877f
+  created: 1753221070198
+  modified: 1753221123613
+collection:
+  - url: http://localhost:8080/auth/signup
+    name: signup
+    meta:
+      id: req_7424d3ac9a144f458d7ff2379b0df3ad
+      created: 1753221070639
+      modified: 1753224479755
+      isPrivate: false
+      sortKey: -1753221070639
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "username": "john",
+          "password": "secret123"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/auth/signin
+    name: signin
+    meta:
+      id: req_2a51f25308b043abbb21295b5a16e1b6
+      created: 1753223473896
+      modified: 1753224483434
+      isPrivate: false
+      sortKey: -1753221070589
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "username": "john",
+          "password": "secret123"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/auth/me
+    name: me
+    meta:
+      id: req_8504546f9d0f49adbf3071bcb599c301
+      created: 1753223568911
+      modified: 1753224486719
+      isPrivate: false
+      sortKey: -1753221070539
+    method: GET
+    body:
+      mimeType: application/json
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_c60d3dc7d3a74adaaf20a753b2c35985
+      - name: User-Agent
+        value: insomnia/11.1.0
+        id: pair_bfb9a390c63047639c3f55973ae64511
+      - id: pair_30c6f45c43e54fae94aeae6c7f6a05bb
+        name: Authorization
+        value: Bearer { access_token }
+        disabled: true
+    authentication:
+      type: none
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/auth/refresh
+    name: refresh
+    meta:
+      id: req_1c4ad1e0ff4d4de8872662385eb59591
+      created: 1753223878092
+      modified: 1753224490276
+      isPrivate: false
+      sortKey: -1753221070564
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "refresh_token": { refresh_token }
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/auth/signout
+    name: signout
+    meta:
+      id: req_76bf2cd775bd4a1aa73155ce1893d0f2
+      created: 1753223996586
+      modified: 1753224494956
+      isPrivate: false
+      sortKey: -1753221070489
+    method: DELETE
+    body:
+      mimeType: application/json
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_c60d3dc7d3a74adaaf20a753b2c35985
+      - name: User-Agent
+        value: insomnia/11.1.0
+        id: pair_bfb9a390c63047639c3f55973ae64511
+      - id: pair_30c6f45c43e54fae94aeae6c7f6a05bb
+        name: Authorization
+        value: Bearer { access_token }
+        disabled: true
+    authentication:
+      type: none
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/dashboard
+    name: dashboard
+    meta:
+      id: req_76edf8f5375d4a46a3371c6a75d6122d
+      created: 1753224133418
+      modified: 1753224214996
+      isPrivate: false
+      sortKey: -1753221070514
+    method: GET
+    body:
+      mimeType: application/json
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_c60d3dc7d3a74adaaf20a753b2c35985
+      - name: User-Agent
+        value: insomnia/11.1.0
+        id: pair_bfb9a390c63047639c3f55973ae64511
+      - id: pair_30c6f45c43e54fae94aeae6c7f6a05bb
+        name: Authorization
+        value: Bearer { access_token }
+        disabled: true
+    authentication:
+      type: none
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/settings
+    name: settings
+    meta:
+      id: req_d5c589a958c14477bf39f1881d1a3ac9
+      created: 1753224138925
+      modified: 1753224233325
+      isPrivate: false
+      sortKey: -1753221070501.5
+    method: GET
+    body:
+      mimeType: application/json
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_c60d3dc7d3a74adaaf20a753b2c35985
+      - name: User-Agent
+        value: insomnia/11.1.0
+        id: pair_bfb9a390c63047639c3f55973ae64511
+      - id: pair_30c6f45c43e54fae94aeae6c7f6a05bb
+        name: Authorization
+        value: Bearer { access_token }
+        disabled: false
+    authentication:
+      type: none
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
+    created: 1753221070224
+    modified: 1753224527518
+environments:
+  name: Base Environment
+  meta:
+    id: env_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
+    created: 1753221070212
+    modified: 1753221070212
+    isPrivate: false

@@ -1,0 +1,52 @@
+# Executáveis compilados
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Diretório de build
+/build/
+bin/
+dist/
+
+# Diretório de cache do Go
+/pkg/
+*.a
+
+# Módulos Go
+/go.sum
+/go.mod
+
+# IDEs e editores
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Arquivos de banco locais (ex: SQLite)
+*.db
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.backup
+
+# Test output
+coverage.out
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Arquivos de configuração pessoais
+.env
+.env.local
+*.secret
