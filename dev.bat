@@ -1,0 +1,3 @@
+@echo off
+echo Iniciando servidor com auto-reload...
+CompileDaemon --command="./go-jwt-api.exe"
