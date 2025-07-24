@@ -2,14 +2,15 @@
 package auth
 
 import (
-	"database/sql"
 	"go-jwt-api/db"
+	"go-jwt-api/models"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 var JwtKey = []byte("secret-key")
@@ -36,67 +37,15 @@ type RefreshRequest struct {
 }
 
 func setTokenCookies(c *gin.Context, accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time) {
-	c.SetCookie(
-		"access_token",
-		accessToken,
-		int(time.Until(accessExpiration).Seconds()),
-		"/",
-		"",
-		false,
-		true,
-	)
-
-	c.SetCookie(
-		"refresh_token",
-		refreshToken,
-		int(time.Until(refreshExpiration).Seconds()),
-		"/",
-		"",
-		false,
-		true,
-	)
-
-	c.SetCookie(
-		"auth_status",
-		"authenticated",
-		int(time.Until(accessExpiration).Seconds()),
-		"/",
-		"",
-		false,
-		false,
-	)
+	c.SetCookie("access_token", accessToken, int(time.Until(accessExpiration).Seconds()), "/", "", false, true)
+	c.SetCookie("refresh_token", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", "", false, true)
+	c.SetCookie("auth_status", "authenticated", int(time.Until(accessExpiration).Seconds()), "/", "", false, false)
 }
 
 func clearTokenCookies(c *gin.Context) {
-	c.SetCookie(
-		"access_token",
-		"",
-		-1,
-		"/",
-		"",
-		false,
-		true,
-	)
-
-	c.SetCookie(
-		"refresh_token",
-		"",
-		-1,
-		"/",
-		"",
-		false,
-		true,
-	)
-
-	c.SetCookie(
-		"auth_status",
-		"",
-		-1,
-		"/",
-		"",
-		false,
-		false,
-	)
+	c.SetCookie("access_token", "", -1, "/", "", false, true)
+	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+	c.SetCookie("auth_status", "", -1, "/", "", false, false)
 }
 
 func SignUp(c *gin.Context) {
@@ -106,13 +55,12 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	var exists string
-	err := db.DB.QueryRow("SELECT username FROM users WHERE username = ?", creds.Username).Scan(&exists)
-	if err != sql.ErrNoRows && err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	} else if exists != "" {
+	var existingUser models.User
+	if err := db.DB.Where("username = ?", creds.Username).First(&existingUser).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User already exists"})
+		return
+	} else if err != gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}
 
@@ -122,8 +70,12 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	_, err = db.DB.Exec("INSERT INTO users (username, password) VALUES (?, ?)", creds.Username, hashedPassword)
-	if err != nil {
+	user := models.User{
+		Username: creds.Username,
+		Password: string(hashedPassword),
+	}
+
+	if err := db.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
@@ -138,22 +90,22 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	var storedPassword string
-	err := db.DB.QueryRow("SELECT password FROM users WHERE username = ?", creds.Username).Scan(&storedPassword)
-	if err == sql.ErrNoRows {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		return
-	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+	var user models.User
+	if err := db.DB.Where("username = ?", creds.Username).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		}
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(creds.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect password"})
 		return
 	}
 
-	accessToken, refreshToken, expiresIn, accessExpiration, refreshExpiration, err := generateTokenPair(creds.Username)
+	accessToken, refreshToken, expiresIn, accessExpiration, refreshExpiration, err := generateTokenPair(user.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate tokens"})
 		return
@@ -202,14 +154,14 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	var exists string
-	err = db.DB.QueryRow("SELECT username FROM users WHERE username = ?", claims.Username).Scan(&exists)
-	if err == sql.ErrNoRows {
+	var user models.User
+	if err := db.DB.Where("username = ?", claims.Username).First(&user).Error; err != nil {
 		clearTokenCookies(c)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		return
-	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		}
 		return
 	}
 
@@ -280,6 +232,5 @@ func Me(c *gin.Context) {
 
 func SignOut(c *gin.Context) {
 	clearTokenCookies(c)
-
 	c.JSON(http.StatusOK, gin.H{"message": "Signout successful (client-side tokens must be discarded)"})
 }

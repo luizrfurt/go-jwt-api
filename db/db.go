@@ -2,15 +2,18 @@
 package db
 
 import (
-	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
+	"go-jwt-api/models"
+
 	"github.com/joho/godotenv"
-	_ "modernc.org/sqlite"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var DB *sql.DB
+var DB *gorm.DB
 
 func InitDB() {
 	err := godotenv.Load()
@@ -18,23 +21,24 @@ func InitDB() {
 		log.Println("No .env file found or failed to load it")
 	}
 
-	dbPath := os.Getenv("DB_PATH")
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
 
-	DB, err = sql.Open("sqlite", dbPath)
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		host, user, password, dbname, port,
+	)
+
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to open database:", err)
+		log.Fatal("Failed to connect to database:", err)
 	}
 
-	createTable := `
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL
-    );
-    `
-
-	_, err = DB.Exec(createTable)
+	err = DB.AutoMigrate(&models.User{})
 	if err != nil {
-		log.Fatal("Failed to create table:", err)
+		log.Fatal("Failed to auto-migrate database:", err)
 	}
 }
