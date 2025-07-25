@@ -13,7 +13,7 @@ import (
 
 func main() {
 	config.LoadConfig()
-	auth.InitJwtKey()
+	auth.InitAuthConfig()
 	db.InitDB()
 	r := gin.Default()
 

@@ -14,10 +14,25 @@ import (
 	"gorm.io/gorm"
 )
 
-var JwtKey []byte
+var (
+	JwtKey         []byte
+	CookieSecure   bool
+	CookieDomain   string
+	CookieSameSite http.SameSite
+)
 
-func InitJwtKey() {
+func InitAuthConfig() {
 	JwtKey = []byte(config.AppConfig.JwtKey)
+
+	if config.AppConfig.Environment == "production" {
+		CookieSecure = true
+		CookieDomain = "your-domain.com"
+		CookieSameSite = http.SameSiteStrictMode
+	} else {
+		CookieSecure = false
+		CookieDomain = ""
+		CookieSameSite = http.SameSiteLaxMode
+	}
 }
 
 type Credentials struct {
@@ -44,15 +59,15 @@ type RefreshRequest struct {
 }
 
 func setTokenCookies(c *gin.Context, accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time) {
-	c.SetCookie("access_token", accessToken, int(time.Until(accessExpiration).Seconds()), "/", "", false, true)
-	c.SetCookie("refresh_token", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", "", false, true)
-	c.SetCookie("auth_status", "authenticated", int(time.Until(accessExpiration).Seconds()), "/", "", false, false)
+	c.SetCookie("access_token", accessToken, int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
+	c.SetCookie("refresh_token", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
+	c.SetCookie("auth_status", "authenticated", int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
 }
 
 func clearTokenCookies(c *gin.Context) {
-	c.SetCookie("access_token", "", -1, "/", "", false, true)
-	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
-	c.SetCookie("auth_status", "", -1, "/", "", false, false)
+	c.SetCookie("access_token", "", -1, "/", CookieDomain, CookieSecure, true)
+	c.SetCookie("refresh_token", "", -1, "/", CookieDomain, CookieSecure, true)
+	c.SetCookie("auth_status", "", -1, "/", CookieDomain, CookieSecure, false)
 }
 
 func SignUp(c *gin.Context) {
