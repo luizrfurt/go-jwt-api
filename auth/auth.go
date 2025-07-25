@@ -35,10 +35,15 @@ func InitAuthConfig() {
 	}
 }
 
-type Credentials struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+type SignUpRequest struct {
+	Username string `json:"username" binding:"required,min=3,max=20"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type SignInRequest struct {
+	Username string `json:"username" binding:"required,min=3,max=20"`
+	Password string `json:"password" binding:"required"`
 }
 
 type Claims struct {
@@ -71,14 +76,14 @@ func clearTokenCookies(c *gin.Context) {
 }
 
 func SignUp(c *gin.Context) {
-	var creds Credentials
-	if err := c.BindJSON(&creds); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	var req SignUpRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid signup request"})
 		return
 	}
 
 	var existingUser models.User
-	if err := db.DB.Where("username = ?", creds.Username).First(&existingUser).Error; err == nil {
+	if err := db.DB.Where("username = ?", req.Username).First(&existingUser).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
 		return
 	} else if err != gorm.ErrRecordNotFound {
@@ -86,7 +91,7 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Where("email = ?", creds.Email).First(&existingUser).Error; err == nil {
+	if err := db.DB.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
 		return
 	} else if err != gorm.ErrRecordNotFound {
@@ -94,15 +99,15 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
 		return
 	}
 
 	user := models.User{
-		Username: creds.Username,
-		Email:    creds.Email,
+		Username: req.Username,
+		Email:    req.Email,
 		Password: string(hashedPassword),
 	}
 
@@ -115,14 +120,14 @@ func SignUp(c *gin.Context) {
 }
 
 func SignIn(c *gin.Context) {
-	var creds Credentials
-	if err := c.BindJSON(&creds); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	var req SignInRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid signin request"})
 		return
 	}
 
 	var user models.User
-	if err := db.DB.Where("username = ?", creds.Username).First(&user).Error; err != nil {
+	if err := db.DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 		} else {
@@ -131,7 +136,7 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect password"})
 		return
 	}
