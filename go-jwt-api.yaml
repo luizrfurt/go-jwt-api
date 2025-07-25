@@ -10,7 +10,7 @@ collection:
     meta:
       id: req_7424d3ac9a144f458d7ff2379b0df3ad
       created: 1753221070639
-      modified: 1753224479755
+      modified: 1753464850145
       isPrivate: false
       sortKey: -1753221070639
     method: POST
@@ -19,6 +19,7 @@ collection:
       text: |-
         {
           "username": "john",
+        	"email": "john@mail.com",
           "password": "secret123"
         }
     headers:
@@ -224,7 +225,34 @@ cookieJar:
   meta:
     id: jar_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
     created: 1753221070224
-    modified: 1753224527518
+    modified: 1753464870354
+  cookies:
+    - key: access_token
+      maxAge: 0
+      domain: localhost
+      path: /
+      httpOnly: true
+      hostOnly: true
+      creation: 2025-07-25T17:34:22.834Z
+      lastAccessed: 2025-07-25T17:34:30.353Z
+      id: f313c15c-bad5-4fe5-a991-bf3ec0f568e6
+    - key: refresh_token
+      maxAge: 0
+      domain: localhost
+      path: /
+      httpOnly: true
+      hostOnly: true
+      creation: 2025-07-25T17:34:22.835Z
+      lastAccessed: 2025-07-25T17:34:30.354Z
+      id: 24740d9f-2141-41ca-b743-840f929b62c1
+    - key: auth_status
+      maxAge: 0
+      domain: localhost
+      path: /
+      hostOnly: true
+      creation: 2025-07-25T17:34:22.835Z
+      lastAccessed: 2025-07-25T17:34:30.354Z
+      id: 845ee083-6e6f-4e95-96a4-f8f4c4893bbd
 environments:
   name: Base Environment
   meta:
