@@ -27,8 +27,9 @@ type Claims struct {
 }
 
 type TokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	Message      string `json:"message,omitempty"`
+	//AccessToken  string `json:"access_token"`
+	//RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int64  `json:"expires_in"`
 }
 
@@ -114,8 +115,9 @@ func SignIn(c *gin.Context) {
 	setTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 
 	response := TokenResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		Message:      "Sign in successful",
+		//AccessToken:  accessToken,
+		//RefreshToken: refreshToken,
 		ExpiresIn:    expiresIn,
 	}
 
@@ -174,8 +176,9 @@ func RefreshToken(c *gin.Context) {
 	setTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 
 	response := TokenResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		Message:      "Access token refreshed successfully",
+		//AccessToken:  accessToken,
+		//RefreshToken: refreshToken,
 		ExpiresIn:    expiresIn,
 	}
 
