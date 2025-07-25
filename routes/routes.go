@@ -14,11 +14,11 @@ func SetupRoutes(r *gin.Engine) {
 		authGroup.POST("/signup", auth.SignUp)
 		authGroup.POST("/signin", auth.SignIn)
 		authGroup.POST("/refresh", auth.RefreshToken)
+		authGroup.DELETE("/signout", auth.SignOut)
 		protected := authGroup.Group("/")
 		protected.Use(middleware.AuthMiddleware())
 		{
 			protected.GET("/me", auth.Me)
-			protected.DELETE("/signout", auth.SignOut)
 		}
 	}
 	appGroup := r.Group("/")
