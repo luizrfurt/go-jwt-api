@@ -17,6 +17,7 @@ var JwtKey = []byte("secret-key")
 
 type Credentials struct {
 	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -27,10 +28,10 @@ type Claims struct {
 }
 
 type TokenResponse struct {
-	Message      string `json:"message,omitempty"`
+	Message string `json:"message,omitempty"`
 	//AccessToken  string `json:"access_token"`
 	//RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
+	ExpiresIn int64 `json:"expires_in"`
 }
 
 type RefreshRequest struct {
@@ -58,7 +59,15 @@ func SignUp(c *gin.Context) {
 
 	var existingUser models.User
 	if err := db.DB.Where("username = ?", creds.Username).First(&existingUser).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User already exists"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
+		return
+	} else if err != gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	if err := db.DB.Where("email = ?", creds.Email).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
 		return
 	} else if err != gorm.ErrRecordNotFound {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
@@ -73,6 +82,7 @@ func SignUp(c *gin.Context) {
 
 	user := models.User{
 		Username: creds.Username,
+		Email:    creds.Email,
 		Password: string(hashedPassword),
 	}
 
@@ -81,7 +91,7 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered"})
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
 func SignIn(c *gin.Context) {
@@ -115,10 +125,10 @@ func SignIn(c *gin.Context) {
 	setTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 
 	response := TokenResponse{
-		Message:      "Sign in successful",
+		Message: "Sign in successful",
 		//AccessToken:  accessToken,
 		//RefreshToken: refreshToken,
-		ExpiresIn:    expiresIn,
+		ExpiresIn: expiresIn,
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -176,10 +186,10 @@ func RefreshToken(c *gin.Context) {
 	setTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 
 	response := TokenResponse{
-		Message:      "Access token refreshed successfully",
+		Message: "Access token refreshed successfully",
 		//AccessToken:  accessToken,
 		//RefreshToken: refreshToken,
-		ExpiresIn:    expiresIn,
+		ExpiresIn: expiresIn,
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -225,12 +235,29 @@ func generateTokenPair(username string) (accessToken, refreshToken string, expir
 }
 
 func Me(c *gin.Context) {
-	user, exists := c.Get("user")
+	username, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found in context"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"user": user})
+
+	var user models.User
+	if err := db.DB.Where("username = ?", username).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": gin.H{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+		},
+	})
 }
 
 func SignOut(c *gin.Context) {
