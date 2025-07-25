@@ -155,19 +155,19 @@ func SignIn(c *gin.Context) {
 }
 
 func RefreshToken(c *gin.Context) {
-	var req RefreshRequest
+	//var req RefreshRequest
 	var refreshTokenStr string
 
-	if err := c.BindJSON(&req); err == nil && req.RefreshToken != "" {
-		refreshTokenStr = req.RefreshToken
-	} else {
-		var err error
-		refreshTokenStr, err = c.Cookie("refresh_token")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token not provided"})
-			return
-		}
+	//if err := c.BindJSON(&req); err == nil && req.RefreshToken != "" {
+	//	refreshTokenStr = req.RefreshToken
+	//} else {
+	var err error
+	refreshTokenStr, err = c.Cookie("refresh_token")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token not provided"})
+		return
 	}
+	//}
 
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(refreshTokenStr, claims, func(token *jwt.Token) (interface{}, error) {
