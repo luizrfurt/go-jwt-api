@@ -282,5 +282,5 @@ func Me(c *gin.Context) {
 
 func SignOut(c *gin.Context) {
 	clearTokenCookies(c)
-	c.JSON(http.StatusOK, gin.H{"message": "Signout successful (client-side tokens must be discarded)"})
+	c.JSON(http.StatusOK, gin.H{"message": "Sign out successful (client-side tokens must be discarded)"})
 }
