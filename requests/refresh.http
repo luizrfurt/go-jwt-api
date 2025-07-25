@@ -1,6 +1,2 @@
 POST http://localhost:8080/auth/refresh
 Content-Type: application/json
-
-{
-  "refresh_token": { refresh_token }
-}

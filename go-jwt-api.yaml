@@ -10,7 +10,7 @@ collection:
     meta:
       id: req_7424d3ac9a144f458d7ff2379b0df3ad
       created: 1753221070639
-      modified: 1753464850145
+      modified: 1753470255659
       isPrivate: false
       sortKey: -1753221070639
     method: POST
@@ -69,7 +69,7 @@ collection:
     meta:
       id: req_8504546f9d0f49adbf3071bcb599c301
       created: 1753223568911
-      modified: 1753224486719
+      modified: 1753469933403
       isPrivate: false
       sortKey: -1753221070539
     method: GET
@@ -82,10 +82,6 @@ collection:
       - name: User-Agent
         value: insomnia/11.1.0
         id: pair_bfb9a390c63047639c3f55973ae64511
-      - id: pair_30c6f45c43e54fae94aeae6c7f6a05bb
-        name: Authorization
-        value: Bearer { access_token }
-        disabled: true
     authentication:
       type: none
     settings:
@@ -101,16 +97,12 @@ collection:
     meta:
       id: req_1c4ad1e0ff4d4de8872662385eb59591
       created: 1753223878092
-      modified: 1753224490276
+      modified: 1753469915289
       isPrivate: false
       sortKey: -1753221070564
     method: POST
     body:
       mimeType: application/json
-      text: |-
-        {
-          "refresh_token": { refresh_token }
-        }
     headers:
       - name: Content-Type
         value: application/json
@@ -129,7 +121,7 @@ collection:
     meta:
       id: req_76bf2cd775bd4a1aa73155ce1893d0f2
       created: 1753223996586
-      modified: 1753224494956
+      modified: 1753469962362
       isPrivate: false
       sortKey: -1753221070489
     method: DELETE
@@ -142,10 +134,6 @@ collection:
       - name: User-Agent
         value: insomnia/11.1.0
         id: pair_bfb9a390c63047639c3f55973ae64511
-      - id: pair_30c6f45c43e54fae94aeae6c7f6a05bb
-        name: Authorization
-        value: Bearer { access_token }
-        disabled: true
     authentication:
       type: none
     settings:
@@ -161,7 +149,7 @@ collection:
     meta:
       id: req_76edf8f5375d4a46a3371c6a75d6122d
       created: 1753224133418
-      modified: 1753224214996
+      modified: 1753469955888
       isPrivate: false
       sortKey: -1753221070514
     method: GET
@@ -174,10 +162,6 @@ collection:
       - name: User-Agent
         value: insomnia/11.1.0
         id: pair_bfb9a390c63047639c3f55973ae64511
-      - id: pair_30c6f45c43e54fae94aeae6c7f6a05bb
-        name: Authorization
-        value: Bearer { access_token }
-        disabled: true
     authentication:
       type: none
     settings:
@@ -193,7 +177,7 @@ collection:
     meta:
       id: req_d5c589a958c14477bf39f1881d1a3ac9
       created: 1753224138925
-      modified: 1753224233325
+      modified: 1753469959723
       isPrivate: false
       sortKey: -1753221070501.5
     method: GET
@@ -206,10 +190,6 @@ collection:
       - name: User-Agent
         value: insomnia/11.1.0
         id: pair_bfb9a390c63047639c3f55973ae64511
-      - id: pair_30c6f45c43e54fae94aeae6c7f6a05bb
-        name: Authorization
-        value: Bearer { access_token }
-        disabled: false
     authentication:
       type: none
     settings:
@@ -225,34 +205,7 @@ cookieJar:
   meta:
     id: jar_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
     created: 1753221070224
-    modified: 1753464870354
-  cookies:
-    - key: access_token
-      maxAge: 0
-      domain: localhost
-      path: /
-      httpOnly: true
-      hostOnly: true
-      creation: 2025-07-25T17:34:22.834Z
-      lastAccessed: 2025-07-25T17:34:30.353Z
-      id: f313c15c-bad5-4fe5-a991-bf3ec0f568e6
-    - key: refresh_token
-      maxAge: 0
-      domain: localhost
-      path: /
-      httpOnly: true
-      hostOnly: true
-      creation: 2025-07-25T17:34:22.835Z
-      lastAccessed: 2025-07-25T17:34:30.354Z
-      id: 24740d9f-2141-41ca-b743-840f929b62c1
-    - key: auth_status
-      maxAge: 0
-      domain: localhost
-      path: /
-      hostOnly: true
-      creation: 2025-07-25T17:34:22.835Z
-      lastAccessed: 2025-07-25T17:34:30.354Z
-      id: 845ee083-6e6f-4e95-96a4-f8f4c4893bbd
+    modified: 1753470225966
 environments:
   name: Base Environment
   meta:
