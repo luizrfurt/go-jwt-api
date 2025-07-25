@@ -13,8 +13,8 @@ import (
 
 func main() {
 	config.LoadConfig()
+	db.InitDBConfig()
 	auth.InitAuthConfig()
-	db.InitDB()
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{

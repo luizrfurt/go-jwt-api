@@ -14,7 +14,7 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() {
+func InitDBConfig() {
 	c := config.AppConfig
 
 	dsn := fmt.Sprintf(
