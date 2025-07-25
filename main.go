@@ -2,6 +2,7 @@
 package main
 
 import (
+	"go-jwt-api/auth"
 	"go-jwt-api/config"
 	"go-jwt-api/db"
 	"go-jwt-api/routes"
@@ -12,6 +13,7 @@ import (
 
 func main() {
 	config.LoadConfig()
+	auth.InitJwtKey()
 	db.InitDB()
 	r := gin.Default()
 

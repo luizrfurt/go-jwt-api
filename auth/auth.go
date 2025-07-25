@@ -2,6 +2,7 @@
 package auth
 
 import (
+	"go-jwt-api/config"
 	"go-jwt-api/db"
 	"go-jwt-api/models"
 	"net/http"
@@ -13,7 +14,11 @@ import (
 	"gorm.io/gorm"
 )
 
-var JwtKey = []byte("secret-key")
+var JwtKey []byte
+
+func InitJwtKey() {
+	JwtKey = []byte(config.AppConfig.JwtKey)
+}
 
 type Credentials struct {
 	Username string `json:"username"`

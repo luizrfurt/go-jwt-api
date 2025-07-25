@@ -14,6 +14,7 @@ type Config struct {
 	DBUser     string
 	DBPassword string
 	DBName     string
+	JwtKey     string
 }
 
 var AppConfig *Config
@@ -30,6 +31,7 @@ func LoadConfig() {
 		DBUser:     getEnv("DB_USER", "postgres"),
 		DBPassword: getEnv("DB_PASSWORD", "postgres"),
 		DBName:     getEnv("DB_NAME", "core"),
+		JwtKey:     getEnv("JWT_SECRET", "super-secret-key"),
 	}
 }
 
