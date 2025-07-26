@@ -52,13 +52,6 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-type TokenResponse struct {
-	Message string `json:"message,omitempty"`
-	//AccessToken  string `json:"access_token"`
-	//RefreshToken string `json:"refresh_token"`
-	ExpiresIn int64 `json:"expires_in"`
-}
-
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
@@ -141,7 +134,7 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, expiresIn, accessExpiration, refreshExpiration, err := generateTokenPair(user.Username)
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err := generateTokenPair(user.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate tokens"})
 		return
@@ -149,30 +142,18 @@ func SignIn(c *gin.Context) {
 
 	setTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 
-	response := TokenResponse{
-		Message: "Sign in successful",
-		//AccessToken:  accessToken,
-		//RefreshToken: refreshToken,
-		ExpiresIn: expiresIn,
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{"message": "Sign in successful"})
 }
 
 func RefreshToken(c *gin.Context) {
-	//var req RefreshRequest
 	var refreshTokenStr string
 
-	//if err := c.BindJSON(&req); err == nil && req.RefreshToken != "" {
-	//	refreshTokenStr = req.RefreshToken
-	//} else {
 	var err error
 	refreshTokenStr, err = c.Cookie("refresh_token")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token not provided"})
 		return
 	}
-	//}
 
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(refreshTokenStr, claims, func(token *jwt.Token) (interface{}, error) {
@@ -202,7 +183,7 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, expiresIn, accessExpiration, refreshExpiration, err := generateTokenPair(claims.Username)
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err := generateTokenPair(claims.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate tokens"})
 		return
@@ -210,14 +191,7 @@ func RefreshToken(c *gin.Context) {
 
 	setTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 
-	response := TokenResponse{
-		Message: "Access token refreshed successfully",
-		//AccessToken:  accessToken,
-		//RefreshToken: refreshToken,
-		ExpiresIn: expiresIn,
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{"message": "Access token refreshed successfully"})
 }
 
 func generateTokenPair(username string) (accessToken, refreshToken string, expiresIn int64, accessExpiration, refreshExpiration time.Time, err error) {
@@ -287,5 +261,5 @@ func Me(c *gin.Context) {
 
 func SignOut(c *gin.Context) {
 	clearTokenCookies(c)
-	c.JSON(http.StatusOK, gin.H{"message": "Sign out successful (client-side tokens must be discarded)"})
+	c.JSON(http.StatusOK, gin.H{"message": "Sign out successful"})
 }
