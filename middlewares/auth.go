@@ -1,5 +1,5 @@
-// middleware/auth.go
-package middleware
+// middlewares/auth.go
+package middlewares
 
 import (
 	"go-jwt-api/auth"
