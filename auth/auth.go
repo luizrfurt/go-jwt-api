@@ -5,6 +5,7 @@ import (
 	"go-jwt-api/config"
 	"go-jwt-api/db"
 	"go-jwt-api/models"
+	"go-jwt-api/validators"
 	"net/http"
 	"time"
 
@@ -35,17 +36,6 @@ func InitAuthConfig() {
 	}
 }
 
-type SignUpRequest struct {
-	Username string `json:"username" binding:"required,min=3,max=20"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
-}
-
-type SignInRequest struct {
-	Username string `json:"username" binding:"required,min=3,max=20"`
-	Password string `json:"password" binding:"required"`
-}
-
 type Claims struct {
 	Username  string `json:"username"`
 	TokenType string `json:"token_type"`
@@ -65,9 +55,13 @@ func clearTokenCookies(c *gin.Context) {
 }
 
 func SignUp(c *gin.Context) {
-	var req SignUpRequest
+	var req validators.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid signup request"})
+		return
+	}
+	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"validation_errors": validationErrors})
 		return
 	}
 
@@ -109,9 +103,13 @@ func SignUp(c *gin.Context) {
 }
 
 func SignIn(c *gin.Context) {
-	var req SignInRequest
+	var req validators.SignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid signin request"})
+		return
+	}
+	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"validation_errors": validationErrors})
 		return
 	}
 
