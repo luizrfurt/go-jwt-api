@@ -23,6 +23,19 @@ var (
 	CookieSameSite http.SameSite
 )
 
+var (
+	ErrUsernameExists    = errors.New("username already exists")
+	ErrEmailExists       = errors.New("email already exists")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrDatabaseError     = errors.New("database error")
+	ErrHashPassword      = errors.New("could not hash password")
+	ErrCreateUser        = errors.New("failed to create user")
+	ErrIncorrectPassword = errors.New("incorrect password")
+	ErrGenerateTokens    = errors.New("could not generate tokens")
+	ErrInvalidToken      = errors.New("invalid token")
+	ErrInvalidTokenType  = errors.New("invalid token type")
+)
+
 type Claims struct {
 	Username  string `json:"username"`
 	TokenType string `json:"token_type"`
@@ -55,23 +68,34 @@ func ClearTokenCookies(c *gin.Context) {
 	c.SetCookie("auth_status", "", -1, "/", CookieDomain, CookieSecure, false)
 }
 
-func RegisterUser(req validators.SignUpRequest) error {
-	var existingUser models.User
-	if err := db.DB.Where("username = ?", req.Username).First(&existingUser).Error; err == nil {
-		return errors.New("username already exists")
-	} else if err != gorm.ErrRecordNotFound {
-		return errors.New("database error")
+func findUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	err := db.DB.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, ErrDatabaseError
 	}
+	return &user, nil
+}
 
-	if err := db.DB.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
-		return errors.New("email already exists")
-	} else if err != gorm.ErrRecordNotFound {
-		return errors.New("database error")
+func findUserByEmail(email string) (*models.User, error) {
+	var user models.User
+	err := db.DB.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, ErrDatabaseError
 	}
+	return &user, nil
+}
 
+func createUser(req validators.SignUpRequest) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return errors.New("could not hash password")
+		return ErrHashPassword
 	}
 
 	user := models.User{
@@ -81,28 +105,44 @@ func RegisterUser(req validators.SignUpRequest) error {
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {
-		return errors.New("failed to create user")
+		return ErrCreateUser
 	}
 
 	return nil
 }
 
+func RegisterUser(req validators.SignUpRequest) error {
+	_, err := findUserByUsername(req.Username)
+	if err != nil && !errors.Is(err, ErrUserNotFound) {
+	}
+	if err == nil {
+		return ErrUsernameExists
+	}
+
+	_, err = findUserByEmail(req.Email)
+	if err != nil && !errors.Is(err, ErrUserNotFound) {
+		return err
+	}
+	if err == nil {
+		return ErrEmailExists
+	}
+
+	return createUser(req)
+}
+
 func AuthenticateUser(username, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, err error) {
-	var user models.User
-	if err := db.DB.Where("username = ?", username).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return "", "", time.Time{}, time.Time{}, errors.New("user not found")
-		}
-		return "", "", time.Time{}, time.Time{}, errors.New("database error")
+	user, err := findUserByUsername(username)
+	if err != nil {
+		return "", "", time.Time{}, time.Time{}, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", "", time.Time{}, time.Time{}, errors.New("incorrect password")
+		return "", "", time.Time{}, time.Time{}, ErrIncorrectPassword
 	}
 
 	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Username)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, errors.New("could not generate tokens")
+		return "", "", time.Time{}, time.Time{}, ErrGenerateTokens
 	}
 
 	return accessToken, refreshToken, accessExpiration, refreshExpiration, nil
@@ -115,38 +155,28 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 	})
 
 	if err != nil || !token.Valid {
-		return "", "", time.Time{}, time.Time{}, errors.New("invalid refresh token")
+		return "", "", time.Time{}, time.Time{}, ErrInvalidToken
 	}
 
 	if claims.TokenType != "refresh" {
-		return "", "", time.Time{}, time.Time{}, errors.New("invalid token type")
+		return "", "", time.Time{}, time.Time{}, ErrInvalidTokenType
 	}
 
-	var user models.User
-	if err := db.DB.Where("username = ?", claims.Username).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return "", "", time.Time{}, time.Time{}, errors.New("user not found")
-		}
-		return "", "", time.Time{}, time.Time{}, errors.New("database error")
+	_, err = findUserByUsername(claims.Username)
+	if err != nil {
+		return "", "", time.Time{}, time.Time{}, err
 	}
 
 	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(claims.Username)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, errors.New("could not generate tokens")
+		return "", "", time.Time{}, time.Time{}, ErrGenerateTokens
 	}
 
 	return accessToken, refreshToken, accessExpiration, refreshExpiration, nil
 }
 
 func GetUserByUsername(username string) (*models.User, error) {
-	var user models.User
-	if err := db.DB.Where("username = ?", username).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, errors.New("user not found")
-		}
-		return nil, errors.New("database error")
-	}
-	return &user, nil
+	return findUserByUsername(username)
 }
 
 func ValidateAccessToken(tokenStr string) (*Claims, error) {
@@ -156,11 +186,11 @@ func ValidateAccessToken(tokenStr string) (*Claims, error) {
 	})
 
 	if err != nil || !token.Valid {
-		return nil, errors.New("invalid token")
+		return nil, ErrInvalidToken
 	}
 
 	if claims.TokenType != "access" {
-		return nil, errors.New("invalid token type")
+		return nil, ErrInvalidTokenType
 	}
 
 	return claims, nil
