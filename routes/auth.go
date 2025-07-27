@@ -2,7 +2,7 @@
 package routes
 
 import (
-	"go-jwt-api/auth"
+	"go-jwt-api/handlers"
 	"go-jwt-api/middlewares"
 
 	"github.com/gin-gonic/gin"
@@ -11,15 +11,15 @@ import (
 func RegisterAuthRoutes(r *gin.Engine) {
 	authGroup := r.Group("/auth")
 	{
-		authGroup.POST("/signup", auth.SignUp)
-		authGroup.POST("/signin", auth.SignIn)
-		authGroup.POST("/refresh", auth.RefreshToken)
-		authGroup.DELETE("/signout", auth.SignOut)
+		authGroup.POST("/signup", handlers.SignUp)
+		authGroup.POST("/signin", handlers.SignIn)
+		authGroup.POST("/refresh", handlers.RefreshToken)
+		authGroup.DELETE("/signout", handlers.SignOut)
 
 		protected := authGroup.Group("/")
 		protected.Use(middlewares.AuthMiddleware())
 		{
-			protected.GET("/me", auth.Me)
+			protected.GET("/me", handlers.Me)
 		}
 	}
 }

@@ -2,10 +2,10 @@
 package main
 
 import (
-	"go-jwt-api/auth"
 	"go-jwt-api/config"
 	"go-jwt-api/db"
 	"go-jwt-api/routes"
+	"go-jwt-api/services"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,8 @@ import (
 func main() {
 	config.LoadConfig()
 	db.InitDBConfig()
-	auth.InitAuthConfig()
+	services.InitAuthConfig()
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -30,5 +31,6 @@ func main() {
 	})
 
 	routes.SetupRoutes(r)
+
 	r.Run(":8080")
 }

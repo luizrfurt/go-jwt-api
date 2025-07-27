@@ -2,11 +2,10 @@
 package middlewares
 
 import (
-	"go-jwt-api/auth"
+	"go-jwt-api/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -18,18 +17,20 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing or malformed token"})
 			return
 		}
-		claims := &auth.Claims{}
-		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-			return auth.JwtKey, nil
-		})
-		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+
+		claims, err := services.ValidateAccessToken(tokenStr)
+		if err != nil {
+			switch err.Error() {
+			case "invalid token":
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			case "invalid token type":
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type. Access token required"})
+			default:
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token validation failed"})
+			}
 			return
 		}
-		if claims.TokenType != "access" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type. Access token required"})
-			return
-		}
+
 		c.Set("user", claims.Username)
 		c.Next()
 	}
