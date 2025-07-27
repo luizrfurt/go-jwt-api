@@ -3,6 +3,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"go-jwt-api/config"
 	"go-jwt-api/db"
 	"go-jwt-api/models"
@@ -75,7 +76,7 @@ func findUserByUsername(username string) (*models.User, error) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
 		}
-		return nil, ErrDatabaseError
+		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
 	}
 	return &user, nil
 }
@@ -87,7 +88,7 @@ func findUserByEmail(email string) (*models.User, error) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
 		}
-		return nil, ErrDatabaseError
+		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
 	}
 	return &user, nil
 }
@@ -95,7 +96,7 @@ func findUserByEmail(email string) (*models.User, error) {
 func createUser(req validators.SignUpRequest) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return ErrHashPassword
+		return fmt.Errorf("%w: %v", ErrHashPassword, err)
 	}
 
 	user := models.User{
@@ -105,7 +106,7 @@ func createUser(req validators.SignUpRequest) error {
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {
-		return ErrCreateUser
+		return fmt.Errorf("%w: %v", ErrCreateUser, err)
 	}
 
 	return nil
@@ -114,6 +115,7 @@ func createUser(req validators.SignUpRequest) error {
 func RegisterUser(req validators.SignUpRequest) error {
 	_, err := findUserByUsername(req.Username)
 	if err != nil && !errors.Is(err, ErrUserNotFound) {
+		return err
 	}
 	if err == nil {
 		return ErrUsernameExists
@@ -142,7 +144,7 @@ func AuthenticateUser(username, password string) (accessToken, refreshToken stri
 
 	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Username)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, ErrGenerateTokens
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrGenerateTokens, err)
 	}
 
 	return accessToken, refreshToken, accessExpiration, refreshExpiration, nil
@@ -155,7 +157,7 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 	})
 
 	if err != nil || !token.Valid {
-		return "", "", time.Time{}, time.Time{}, ErrInvalidToken
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrInvalidToken, err)
 	}
 
 	if claims.TokenType != "refresh" {
@@ -169,7 +171,7 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 
 	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(claims.Username)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, ErrGenerateTokens
+		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrGenerateTokens, err)
 	}
 
 	return accessToken, refreshToken, accessExpiration, refreshExpiration, nil
@@ -186,7 +188,7 @@ func ValidateAccessToken(tokenStr string) (*Claims, error) {
 	})
 
 	if err != nil || !token.Valid {
-		return nil, ErrInvalidToken
+		return nil, fmt.Errorf("%w: %v", ErrInvalidToken, err)
 	}
 
 	if claims.TokenType != "access" {

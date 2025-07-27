@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"errors"
 	"go-jwt-api/services"
 	"go-jwt-api/validators"
 	"net/http"
@@ -9,30 +10,68 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type ErrorResponse struct {
+	Error   string            `json:"error"`
+	Details map[string]string `json:"details,omitempty"`
+}
+
+func handleServiceError(c *gin.Context, err error) {
+	var statusCode int
+	var message string
+
+	switch {
+	case errors.Is(err, services.ErrUsernameExists):
+		statusCode = http.StatusBadRequest
+		message = "Username already exists"
+	case errors.Is(err, services.ErrEmailExists):
+		statusCode = http.StatusBadRequest
+		message = "Email already exists"
+	case errors.Is(err, services.ErrUserNotFound):
+		statusCode = http.StatusUnauthorized
+		message = "User not found"
+	case errors.Is(err, services.ErrIncorrectPassword):
+		statusCode = http.StatusUnauthorized
+		message = "Incorrect password"
+	case errors.Is(err, services.ErrInvalidToken):
+		statusCode = http.StatusUnauthorized
+		message = "Invalid token"
+	case errors.Is(err, services.ErrInvalidTokenType):
+		statusCode = http.StatusUnauthorized
+		message = "Invalid token type"
+	case errors.Is(err, services.ErrHashPassword):
+		statusCode = http.StatusInternalServerError
+		message = "Could not hash password"
+	case errors.Is(err, services.ErrCreateUser):
+		statusCode = http.StatusInternalServerError
+		message = "Failed to create user"
+	case errors.Is(err, services.ErrGenerateTokens):
+		statusCode = http.StatusInternalServerError
+		message = "Could not generate tokens"
+	case errors.Is(err, services.ErrDatabaseError):
+		statusCode = http.StatusInternalServerError
+		message = "Database error"
+	default:
+		statusCode = http.StatusInternalServerError
+		message = "Internal server error"
+	}
+
+	c.JSON(statusCode, ErrorResponse{Error: message})
+}
+
 func SignUp(c *gin.Context) {
 	var req validators.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid signup request"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid signup request"})
 		return
 	}
+
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"validation_errors": validationErrors})
 		return
 	}
 
 	if err := services.RegisterUser(req); err != nil {
-		switch err.Error() {
-		case "username already exists":
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
-		case "email already exists":
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
-		case "could not hash password":
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash password"})
-		case "failed to create user":
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		}
+		handleServiceError(c, err)
 		return
 	}
 
@@ -42,9 +81,10 @@ func SignUp(c *gin.Context) {
 func SignIn(c *gin.Context) {
 	var req validators.SignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid signin request"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid signin request"})
 		return
 	}
+
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"validation_errors": validationErrors})
 		return
@@ -52,69 +92,46 @@ func SignIn(c *gin.Context) {
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
-		switch err.Error() {
-		case "user not found":
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		case "incorrect password":
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect password"})
-		case "could not generate tokens":
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate tokens"})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		}
+		handleServiceError(c, err)
 		return
 	}
 
 	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
-
 	c.JSON(http.StatusOK, gin.H{"message": "Sign in successful"})
 }
 
 func Refresh(c *gin.Context) {
 	refreshTokenStr, err := c.Cookie("refresh_token")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token not provided"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Refresh token not provided"})
 		return
 	}
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.RefreshPair(refreshTokenStr)
 	if err != nil {
 		services.ClearTokenCookies(c)
-		switch err.Error() {
-		case "invalid refresh token":
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
-		case "invalid token type":
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type"})
-		case "user not found":
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		case "could not generate tokens":
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate tokens"})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		}
+		handleServiceError(c, err)
 		return
 	}
 
 	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
-
 	c.JSON(http.StatusOK, gin.H{"message": "Refreshed successfully"})
 }
 
 func Me(c *gin.Context) {
 	username, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found in context"})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "User not found in context"})
 		return
 	}
 
 	user, err := services.GetUserByUsername(username.(string))
 	if err != nil {
-		switch err.Error() {
-		case "user not found":
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		if errors.Is(err, services.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "User not found"})
+			return
 		}
+		handleServiceError(c, err)
 		return
 	}
 
