@@ -10,7 +10,7 @@ collection:
     meta:
       id: req_7424d3ac9a144f458d7ff2379b0df3ad
       created: 1753221070639
-      modified: 1753470255659
+      modified: 1753634048102
       isPrivate: false
       sortKey: -1753221070639
     method: POST
@@ -40,7 +40,7 @@ collection:
     meta:
       id: req_2a51f25308b043abbb21295b5a16e1b6
       created: 1753223473896
-      modified: 1753224483434
+      modified: 1753634059538
       isPrivate: false
       sortKey: -1753221070589
     method: POST
@@ -200,12 +200,59 @@ collection:
         send: true
         store: true
       rebuildPath: true
+  - url: http://localhost:8080/
+    name: /
+    meta:
+      id: req_57619301519f4e3497dbfbfbc17a4243
+      created: 1753633331535
+      modified: 1753633352806
+      isPrivate: false
+      sortKey: -1753633331535
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
     id: jar_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
     created: 1753221070224
-    modified: 1753470225966
+    modified: 1753634083292
+  cookies:
+    - key: access_token
+      maxAge: 0
+      domain: localhost
+      path: /
+      httpOnly: true
+      hostOnly: true
+      creation: 2025-07-27T15:42:09.480Z
+      lastAccessed: 2025-07-27T16:34:43.292Z
+      id: e4373299-f19c-42fe-9cf0-9f6e52b9e3ca
+    - key: refresh_token
+      maxAge: 0
+      domain: localhost
+      path: /
+      httpOnly: true
+      hostOnly: true
+      creation: 2025-07-27T15:42:09.482Z
+      lastAccessed: 2025-07-27T16:34:43.292Z
+      id: 0f993e0f-d43b-4adb-8028-3eaae34e6d7a
+    - key: auth_status
+      maxAge: 0
+      domain: localhost
+      path: /
+      hostOnly: true
+      creation: 2025-07-27T15:42:09.482Z
+      lastAccessed: 2025-07-27T16:34:43.292Z
+      id: 128ffb55-bf45-4d2c-86fb-bb36abe2e4d5
 environments:
   name: Base Environment
   meta:
