@@ -62,42 +62,28 @@ var authErrorMap = map[error]ErrorMapping{
 	},
 }
 
-func HandleAuthError(c *gin.Context, err error) {
+func AuthError(c *gin.Context, err error) {
 	for serviceErr, mapping := range authErrorMap {
 		if errors.Is(err, serviceErr) {
 			c.JSON(mapping.StatusCode, ErrorResponse{Error: mapping.Message})
 			return
 		}
 	}
-
 	c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Internal server error"})
 }
 
-func HandleAuthErrorWithCustomStatus(c *gin.Context, err error, customMappings map[error]ErrorMapping) {
+func AuthErrorWithCustomStatus(c *gin.Context, err error, customMappings map[error]ErrorMapping) {
 	for serviceErr, mapping := range customMappings {
 		if errors.Is(err, serviceErr) {
 			c.JSON(mapping.StatusCode, ErrorResponse{Error: mapping.Message})
 			return
 		}
 	}
-
-	HandleAuthError(c, err)
+	AuthError(c, err)
 }
 
-func BadRequestError(c *gin.Context, message string) {
-	c.JSON(http.StatusBadRequest, ErrorResponse{Error: message})
-}
-
-func InternalServerError(c *gin.Context, message string) {
-	c.JSON(http.StatusInternalServerError, ErrorResponse{Error: message})
-}
-
-func UnauthorizedError(c *gin.Context, message string) {
-	c.JSON(http.StatusUnauthorized, ErrorResponse{Error: message})
-}
-
-func NotFoundError(c *gin.Context, message string) {
-	c.JSON(http.StatusNotFound, ErrorResponse{Error: message})
+func Error(c *gin.Context, statusCode int, message string) {
+	c.JSON(statusCode, ErrorResponse{Error: message})
 }
 
 func ValidationError(c *gin.Context, validationErrors interface{}) {

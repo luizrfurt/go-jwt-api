@@ -13,7 +13,7 @@ import (
 func SignUp(c *gin.Context) {
 	var req validators.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.BadRequestError(c, "Invalid signup request")
+		exceptions.Error(c, http.StatusBadRequest, "Invalid signup request")
 		return
 	}
 
@@ -23,7 +23,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	if err := services.RegisterUser(req); err != nil {
-		exceptions.HandleAuthError(c, err)
+		exceptions.AuthError(c, err)
 		return
 	}
 
@@ -33,7 +33,7 @@ func SignUp(c *gin.Context) {
 func SignIn(c *gin.Context) {
 	var req validators.SignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.BadRequestError(c, "Invalid signin request")
+		exceptions.Error(c, http.StatusBadRequest, "Invalid signin request")
 		return
 	}
 
@@ -44,7 +44,7 @@ func SignIn(c *gin.Context) {
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
-		exceptions.HandleAuthError(c, err)
+		exceptions.AuthError(c, err)
 		return
 	}
 
@@ -55,14 +55,14 @@ func SignIn(c *gin.Context) {
 func Refresh(c *gin.Context) {
 	refreshTokenStr, err := c.Cookie("refresh_token")
 	if err != nil {
-		exceptions.BadRequestError(c, "Refresh token not provided")
+		exceptions.Error(c, http.StatusBadRequest, "Refresh token not provided")
 		return
 	}
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.RefreshPair(refreshTokenStr)
 	if err != nil {
 		services.ClearTokenCookies(c)
-		exceptions.HandleAuthError(c, err)
+		exceptions.AuthError(c, err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func Refresh(c *gin.Context) {
 func Me(c *gin.Context) {
 	username, exists := c.Get("user")
 	if !exists {
-		exceptions.InternalServerError(c, "User not found in context")
+		exceptions.Error(c, http.StatusInternalServerError, "User not found in context")
 		return
 	}
 
@@ -85,7 +85,7 @@ func Me(c *gin.Context) {
 				Message:    "User not found",
 			},
 		}
-		exceptions.HandleAuthErrorWithCustomStatus(c, err, customMappings)
+		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
 		return
 	}
 
