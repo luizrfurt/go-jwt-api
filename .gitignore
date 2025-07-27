@@ -1,4 +1,4 @@
-# Executáveis compilados
+# Compiled executables
 *.exe
 *.exe~
 *.dll
@@ -7,31 +7,31 @@
 *.test
 *.out
 
-# Diretório de build
+# Build directories
 /build/
 bin/
 dist/
 
-# Diretório de cache do Go
+# Go cache directory
 /pkg/
 *.a
 
-# Módulos Go
+# Go modules
 /go.sum
 /go.mod
 
-# IDEs e editores
+# IDEs and editors
 .vscode/
 .idea/
 *.swp
 
-# Logs
+# Log files
 *.log
 
-# Arquivos de banco locais (ex: SQLite)
+# Local database files (e.g., SQLite)
 *.db
 
-# Arquivos temporários
+# Temporary files
 *.tmp
 *.bak
 *.backup
@@ -39,14 +39,14 @@ dist/
 # Test output
 coverage.out
 
-# Sistema operacional
+# Operating system files
 .DS_Store
 Thumbs.db
 
-# Git
+# Git directory
 .git/
 
-# Arquivos de configuração pessoais
+# Personal configuration files
 .env
 .env.local
 *.secret
