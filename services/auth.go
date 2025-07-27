@@ -48,7 +48,7 @@ func InitAuthConfig() {
 
 	if config.AppConfig.Environment == "production" {
 		CookieSecure = true
-		CookieDomain = "your-domain.com"
+		CookieDomain = "https://your-domain.com"
 		CookieSameSite = http.SameSiteStrictMode
 	} else {
 		CookieSecure = false
