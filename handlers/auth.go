@@ -28,7 +28,7 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "User registered successfully."})
+	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "User registered successfully."}, []string{})
 }
 
 func SignIn(c *gin.Context) {
@@ -50,7 +50,7 @@ func SignIn(c *gin.Context) {
 	}
 
 	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
-	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign in successful."})
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign in successful."}, []string{})
 }
 
 func Refresh(c *gin.Context) {
@@ -68,7 +68,7 @@ func Refresh(c *gin.Context) {
 	}
 
 	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
-	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Refreshed successfully."})
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Refreshed successfully."}, []string{})
 }
 
 func Me(c *gin.Context) {
@@ -100,10 +100,10 @@ func Me(c *gin.Context) {
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
-	}})
+	}}, []string{})
 }
 
 func SignOut(c *gin.Context) {
 	services.ClearTokenCookies(c)
-	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign out successful."})
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign out successful."}, []string{})
 }

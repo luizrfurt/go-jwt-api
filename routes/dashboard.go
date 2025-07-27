@@ -14,7 +14,7 @@ func RegisterDashboardRoutes(r *gin.Engine) {
 	dashboardGroup.Use(middlewares.AuthMiddleware())
 	{
 		dashboardGroup.GET("/", func(c *gin.Context) {
-			utils.SendJSON(c, http.StatusOK, gin.H{"message": "Welcome to your dashboard!"})
+			utils.SendJSON(c, http.StatusOK, gin.H{"message": "Welcome to your dashboard!"}, []string{})
 		})
 		// dashboardGroup.GET("/stats", getDashboardStats)
 		// dashboardGroup.GET("/recent", getRecentActivity)

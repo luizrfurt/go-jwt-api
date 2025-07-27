@@ -66,17 +66,17 @@ var authErrorMap = map[error]ErrorMapping{
 func AuthError(c *gin.Context, err error) {
 	for serviceErr, mapping := range authErrorMap {
 		if errors.Is(err, serviceErr) {
-			utils.SendJSONError(c, mapping.StatusCode, ErrorResponse{Error: mapping.Message})
+			utils.SendJSONError(c, mapping.StatusCode, ErrorResponse{Error: mapping.Message}, []string{})
 			return
 		}
 	}
-	utils.SendJSONError(c, http.StatusInternalServerError, ErrorResponse{Error: "Internal server error."})
+	utils.SendJSONError(c, http.StatusInternalServerError, ErrorResponse{Error: "Internal server error."}, []string{})
 }
 
 func AuthErrorWithCustomStatus(c *gin.Context, err error, customMappings map[error]ErrorMapping) {
 	for serviceErr, mapping := range customMappings {
 		if errors.Is(err, serviceErr) {
-			utils.SendJSONError(c, mapping.StatusCode, ErrorResponse{Error: mapping.Message})
+			utils.SendJSONError(c, mapping.StatusCode, ErrorResponse{Error: mapping.Message}, []string{})
 			return
 		}
 	}
@@ -84,9 +84,9 @@ func AuthErrorWithCustomStatus(c *gin.Context, err error, customMappings map[err
 }
 
 func Error(c *gin.Context, statusCode int, message string) {
-	utils.SendJSONError(c, statusCode, ErrorResponse{Error: message})
+	utils.SendJSONError(c, statusCode, ErrorResponse{Error: message}, []string{})
 }
 
 func ValidationError(c *gin.Context, validationErrors interface{}) {
-	utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors})
+	utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
 }
