@@ -89,11 +89,17 @@ func Me(c *gin.Context) {
 		return
 	}
 
+	type UserResponse struct {
+		ID       uint   `json:"id"`
+		Username string `json:"username"`
+		Email    string `json:"email"`
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"user": gin.H{
-			"id":       user.ID,
-			"username": user.Username,
-			"email":    user.Email,
+		"user": UserResponse{
+			ID:       user.ID,
+			Username: user.Username,
+			Email:    user.Email,
 		},
 	})
 }
