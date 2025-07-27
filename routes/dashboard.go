@@ -3,6 +3,8 @@ package routes
 
 import (
 	"go-jwt-api/middlewares"
+	"go-jwt-api/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +14,7 @@ func RegisterDashboardRoutes(r *gin.Engine) {
 	dashboardGroup.Use(middlewares.AuthMiddleware())
 	{
 		dashboardGroup.GET("/", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Welcome to your dashboard!"})
+			utils.SendJSON(c, http.StatusOK, gin.H{"message": "Welcome to your dashboard!"})
 		})
 		// dashboardGroup.GET("/stats", getDashboardStats)
 		// dashboardGroup.GET("/recent", getRecentActivity)

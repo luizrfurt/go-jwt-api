@@ -3,6 +3,8 @@ package routes
 
 import (
 	"go-jwt-api/middlewares"
+	"go-jwt-api/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +14,8 @@ func RegisterSettingsRoutes(r *gin.Engine) {
 	settingsGroup.Use(middlewares.AuthMiddleware())
 	{
 		settingsGroup.GET("/", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "These are your settings."})
+			utils.SendJSON(c, http.StatusOK, gin.H{"message": "These are your settings."})
+
 		})
 		// settingsGroup.PUT("/profile", updateProfile)
 		// settingsGroup.PUT("/password", changePassword)

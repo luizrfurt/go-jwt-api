@@ -6,6 +6,8 @@ import (
 	"go-jwt-api/db"
 	"go-jwt-api/routes"
 	"go-jwt-api/services"
+	"go-jwt-api/utils"
+	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -27,7 +29,7 @@ func main() {
 	}))
 
 	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "API is running"})
+		utils.SendJSON(c, http.StatusOK, gin.H{"message": "API is running."})
 	})
 
 	routes.SetupRoutes(r)

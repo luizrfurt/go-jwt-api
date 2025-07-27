@@ -4,6 +4,7 @@ package handlers
 import (
 	"go-jwt-api/exceptions"
 	"go-jwt-api/services"
+	"go-jwt-api/utils"
 	"go-jwt-api/validators"
 	"net/http"
 
@@ -13,7 +14,7 @@ import (
 func SignUp(c *gin.Context) {
 	var req validators.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid signup request")
+		exceptions.Error(c, http.StatusBadRequest, "Invalid signup request.")
 		return
 	}
 
@@ -27,13 +28,13 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
+	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "User registered successfully."})
 }
 
 func SignIn(c *gin.Context) {
 	var req validators.SignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid signin request")
+		exceptions.Error(c, http.StatusBadRequest, "Invalid signin request.")
 		return
 	}
 
@@ -49,13 +50,13 @@ func SignIn(c *gin.Context) {
 	}
 
 	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
-	c.JSON(http.StatusOK, gin.H{"message": "Sign in successful"})
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign in successful."})
 }
 
 func Refresh(c *gin.Context) {
 	refreshTokenStr, err := c.Cookie("refresh_token")
 	if err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Refresh token not provided")
+		exceptions.Error(c, http.StatusBadRequest, "Refresh token not provided.")
 		return
 	}
 
@@ -67,13 +68,13 @@ func Refresh(c *gin.Context) {
 	}
 
 	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
-	c.JSON(http.StatusOK, gin.H{"message": "Refreshed successfully"})
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Refreshed successfully."})
 }
 
 func Me(c *gin.Context) {
 	username, exists := c.Get("user")
 	if !exists {
-		exceptions.Error(c, http.StatusInternalServerError, "User not found in context")
+		exceptions.Error(c, http.StatusInternalServerError, "User not found in context.")
 		return
 	}
 
@@ -82,7 +83,7 @@ func Me(c *gin.Context) {
 		customMappings := map[error]exceptions.ErrorMapping{
 			services.ErrUserNotFound: {
 				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
+				Message:    "User not found.",
 			},
 		}
 		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
@@ -95,16 +96,14 @@ func Me(c *gin.Context) {
 		Email    string `json:"email"`
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"user": UserResponse{
-			ID:       user.ID,
-			Username: user.Username,
-			Email:    user.Email,
-		},
-	})
+	utils.SendJSON(c, http.StatusOK, gin.H{"user": UserResponse{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+	}})
 }
 
 func SignOut(c *gin.Context) {
 	services.ClearTokenCookies(c)
-	c.JSON(http.StatusOK, gin.H{"message": "Sign out successful"})
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign out successful."})
 }
