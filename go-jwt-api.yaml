@@ -40,7 +40,7 @@ collection:
     meta:
       id: req_2a51f25308b043abbb21295b5a16e1b6
       created: 1753223473896
-      modified: 1753634059538
+      modified: 1753635729557
       isPrivate: false
       sortKey: -1753221070589
     method: POST
@@ -225,7 +225,7 @@ cookieJar:
   meta:
     id: jar_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
     created: 1753221070224
-    modified: 1753634083292
+    modified: 1753636003521
   cookies:
     - key: access_token
       maxAge: 0
@@ -234,8 +234,8 @@ cookieJar:
       httpOnly: true
       hostOnly: true
       creation: 2025-07-27T15:42:09.480Z
-      lastAccessed: 2025-07-27T16:34:43.292Z
-      id: e4373299-f19c-42fe-9cf0-9f6e52b9e3ca
+      lastAccessed: 2025-07-27T17:06:43.520Z
+      id: d73ae621-ac50-4bfb-b015-b8924e7af125
     - key: refresh_token
       maxAge: 0
       domain: localhost
@@ -243,16 +243,16 @@ cookieJar:
       httpOnly: true
       hostOnly: true
       creation: 2025-07-27T15:42:09.482Z
-      lastAccessed: 2025-07-27T16:34:43.292Z
-      id: 0f993e0f-d43b-4adb-8028-3eaae34e6d7a
+      lastAccessed: 2025-07-27T17:06:43.520Z
+      id: 67fd6012-2ae2-4323-a0e5-b275c230959d
     - key: auth_status
       maxAge: 0
       domain: localhost
       path: /
       hostOnly: true
       creation: 2025-07-27T15:42:09.482Z
-      lastAccessed: 2025-07-27T16:34:43.292Z
-      id: 128ffb55-bf45-4d2c-86fb-bb36abe2e4d5
+      lastAccessed: 2025-07-27T17:06:43.521Z
+      id: 9e5aead5-6c19-4839-aa57-66eddaf95124
 environments:
   name: Base Environment
   meta:
