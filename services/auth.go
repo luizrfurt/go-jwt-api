@@ -108,7 +108,7 @@ func AuthenticateUser(username, password string) (accessToken, refreshToken stri
 	return accessToken, refreshToken, accessExpiration, refreshExpiration, nil
 }
 
-func RefreshTokenPair(refreshTokenStr string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, err error) {
+func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, err error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(refreshTokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return JwtKey, nil

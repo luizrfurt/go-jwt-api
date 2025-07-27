@@ -13,7 +13,7 @@ func RegisterAuthRoutes(r *gin.Engine) {
 	{
 		authGroup.POST("/signup", handlers.SignUp)
 		authGroup.POST("/signin", handlers.SignIn)
-		authGroup.POST("/refresh", handlers.RefreshToken)
+		authGroup.POST("/refresh", handlers.Refresh)
 		authGroup.DELETE("/signout", handlers.SignOut)
 
 		protected := authGroup.Group("/")

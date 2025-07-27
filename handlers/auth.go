@@ -70,14 +70,14 @@ func SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Sign in successful"})
 }
 
-func RefreshToken(c *gin.Context) {
+func Refresh(c *gin.Context) {
 	refreshTokenStr, err := c.Cookie("refresh_token")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token not provided"})
 		return
 	}
 
-	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.RefreshTokenPair(refreshTokenStr)
+	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.RefreshPair(refreshTokenStr)
 	if err != nil {
 		services.ClearTokenCookies(c)
 		switch err.Error() {
@@ -97,7 +97,7 @@ func RefreshToken(c *gin.Context) {
 
 	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Access token refreshed successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Refreshed successfully"})
 }
 
 func Me(c *gin.Context) {
