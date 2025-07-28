@@ -9,6 +9,8 @@ import (
 )
 
 type Config struct {
+	Port        string
+	PortWeb     string
 	Environment string
 	DBHost      string
 	DBPort      string
@@ -27,6 +29,8 @@ func LoadConfig() {
 	}
 
 	AppConfig = &Config{
+		Port:        getEnv("PORT", "8080"),
+		PortWeb:     getEnv("PORT_WEB", "8080"),
 		Environment: getEnv("ENVIRONMENT", "development"),
 		DBHost:      getEnv("DB_HOST", "localhost"),
 		DBPort:      getEnv("DB_PORT", "5432"),

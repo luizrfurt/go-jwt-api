@@ -20,8 +20,10 @@ func main() {
 
 	r := gin.Default()
 
+	portWeb := config.AppConfig.PortWeb
+
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{"http://localhost:" + portWeb},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Authorization"},
@@ -34,5 +36,5 @@ func main() {
 
 	routes.SetupRoutes(r)
 
-	r.Run(":8080")
+	r.Run(":" + config.AppConfig.Port)
 }
