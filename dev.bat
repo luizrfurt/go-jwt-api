@@ -1,3 +1,4 @@
 @echo off
-echo Starting api...
-CompileDaemon --command="./go-jwt-api.exe"
+taskkill /F /IM go-jwt-api.exe 2>nul
+timeout /t 2 /nobreak >nul
+CompileDaemon --command="./go-jwt-api.exe" -polling=true
