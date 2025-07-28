@@ -1,4 +1,4 @@
-// routes/dashboard.go
+// routes/home.go
 package routes
 
 import (
@@ -9,14 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterDashboardRoutes(r *gin.Engine) {
-	dashboardGroup := r.Group("/dashboard")
-	dashboardGroup.Use(middlewares.AuthMiddleware())
+func RegisterHomeRoutes(r *gin.Engine) {
+	homeGroup := r.Group("/home")
+	homeGroup.Use(middlewares.AuthMiddleware())
 	{
-		dashboardGroup.GET("/", func(c *gin.Context) {
-			utils.SendJSON(c, http.StatusOK, gin.H{"message": "Welcome to your dashboard!"}, []string{})
+		homeGroup.GET("/", func(c *gin.Context) {
+			utils.SendJSON(c, http.StatusOK, gin.H{"message": "Welcome to your home!"}, []string{})
 		})
-		// dashboardGroup.GET("/stats", getDashboardStats)
-		// dashboardGroup.GET("/recent", getRecentActivity)
+		// homeGroup.GET("/stats", getHomeStats)
+		// homeGroup.GET("/recent", getRecentActivity)
 	}
 }
