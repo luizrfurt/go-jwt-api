@@ -17,8 +17,5 @@ func RegisterSettingsRoutes(r *gin.Engine) {
 			utils.SendJSON(c, http.StatusOK, gin.H{"message": "These are your settings."}, []string{})
 
 		})
-		// settingsGroup.PUT("/profile", updateProfile)
-		// settingsGroup.PUT("/password", changePassword)
-		// settingsGroup.GET("/preferences", getPreferences)
 	}
 }

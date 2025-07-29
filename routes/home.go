@@ -16,7 +16,5 @@ func RegisterHomeRoutes(r *gin.Engine) {
 		homeGroup.GET("/", func(c *gin.Context) {
 			utils.SendJSON(c, http.StatusOK, gin.H{"message": "Welcome to your home!"}, []string{})
 		})
-		// homeGroup.GET("/stats", getHomeStats)
-		// homeGroup.GET("/recent", getRecentActivity)
 	}
 }
