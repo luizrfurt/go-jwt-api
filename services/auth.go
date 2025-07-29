@@ -2,11 +2,14 @@
 package services
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"go-jwt-api/config"
 	"go-jwt-api/db"
 	"go-jwt-api/models"
+	"go-jwt-api/utils"
 	"go-jwt-api/validators"
 	"net/http"
 	"time"
@@ -81,7 +84,7 @@ func findUserByUsername(username string) (*models.User, error) {
 	return &user, nil
 }
 
-func findUserByEmail(email string) (*models.User, error) {
+func FindUserByEmail(email string) (*models.User, error) {
 	var user models.User
 	err := db.DB.Where("email = ?", email).First(&user).Error
 	if err != nil {
@@ -122,7 +125,7 @@ func RegisterUser(req validators.SignUpRequest) error {
 		return ErrUsernameExists
 	}
 
-	_, err = findUserByEmail(req.Email)
+	_, err = FindUserByEmail(req.Email)
 	if err != nil && !errors.Is(err, ErrUserNotFound) {
 		return err
 	}
@@ -236,4 +239,58 @@ func generateTokenPair(username string) (accessToken, refreshToken string, expir
 
 	expiresIn = int64(accessExpiration.Sub(now).Seconds())
 	return accessToken, refreshToken, expiresIn, accessExpiration, refreshExpiration, nil
+}
+
+func generateForgotPasswordToken() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
+func SetForgotPasswordToken(user *models.User) (string, error) {
+	token, err := generateForgotPasswordToken()
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", ErrGenerateTokens, err)
+	}
+
+	user.ForgotPasswordToken = token
+	if err := db.DB.Save(user).Error; err != nil {
+		return "", fmt.Errorf("%w: %v", ErrDatabaseError, err)
+	}
+
+	return token, nil
+}
+
+func SendPasswordRecoveryEmail(user *models.User, token string) error {
+	link := fmt.Sprintf("http://localhost:%s/reset-password/%s", config.AppConfig.PortWeb, token)
+	body := fmt.Sprintf(`
+		<div style="font-family: Arial, sans-serif; color: #333;">
+			<h2 style="color: #2c3e50;">Password Recovery</h2>
+			<p>Hello,</p>
+			<p>Please click the button below to reset your password:</p>
+			<a href="%s" style="
+			display: inline-block;
+			padding: 10px 20px;
+			margin: 15px 0;
+			background-color: #005B73;
+			color: white;
+			text-decoration: none;
+			border-radius: 5px;
+			font-weight: bold;
+			" 
+			onmouseover="this.style.backgroundColor='#007991';" 
+			onmouseout="this.style.backgroundColor='#005B73';"
+			>Reset Password</a>
+			<p>If you didn't request a password reset, please ignore this email.</p>
+			<p>Thanks,<br/>Your Company Team</p>
+		</div>
+	`, link)
+
+	if err := utils.SendEmail(user.Email, "Password Recovery", body); err != nil {
+		return fmt.Errorf("failed to send recovery email: %w", err)
+	}
+
+	return nil
 }

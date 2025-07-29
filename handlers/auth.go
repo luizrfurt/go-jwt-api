@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"fmt"
 	"go-jwt-api/exceptions"
 	"go-jwt-api/services"
 	"go-jwt-api/utils"
@@ -108,4 +109,44 @@ func Me(c *gin.Context) {
 func SignOut(c *gin.Context) {
 	services.ClearTokenCookies(c)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign out successful."}, []string{})
+}
+
+func ForgotPassword(c *gin.Context) {
+	var req validators.ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		exceptions.Error(c, http.StatusBadRequest, "Invalid forgot-password request.")
+		return
+	}
+
+	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
+		exceptions.ValidationError(c, validationErrors)
+		return
+	}
+
+	user, err := services.FindUserByEmail(req.Email)
+	if err != nil {
+		customMappings := map[error]exceptions.ErrorMapping{
+			services.ErrUserNotFound: {
+				StatusCode: http.StatusNotFound,
+				Message:    "User with this email was not found.",
+			},
+		}
+		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
+		return
+	}
+
+	token, err := services.SetForgotPasswordToken(user)
+	if err != nil {
+		exceptions.AuthError(c, err)
+		return
+	}
+
+	if err := services.SendPasswordRecoveryEmail(user, token); err != nil {
+		exceptions.Error(c, http.StatusInternalServerError, "Failed to send recovery email.")
+		return
+	}
+
+	utils.SendJSON(c, http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Password recovery instructions sent to %s.", user.Email),
+	}, []string{})
 }

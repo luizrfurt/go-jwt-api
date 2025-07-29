@@ -221,6 +221,34 @@ collection:
         send: true
         store: true
       rebuildPath: true
+  - url: http://localhost:3380/auth/forgot-password
+    name: forgot-password
+    meta:
+      id: req_803e79237c564f28b067eacd61445f59
+      created: 1753796503371
+      modified: 1753796539867
+      isPrivate: false
+      sortKey: -1753221070614
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"email": "john@mail.com"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
