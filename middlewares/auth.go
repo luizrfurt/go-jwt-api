@@ -1,8 +1,8 @@
-// middlewares/auth.go
 package middlewares
 
 import (
 	"go-jwt-api/services"
+	"go-jwt-api/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +10,12 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var tokenStr string
-		var err error
-		tokenStr, err = c.Cookie("access_token")
+		tokenStr, err := c.Cookie("access_token")
 		if err != nil || tokenStr == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing or malformed token"})
+			utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
+				"error": "Missing or malformed token",
+			}, []string{})
+			c.Abort()
 			return
 		}
 
@@ -22,12 +23,19 @@ func AuthMiddleware() gin.HandlerFunc {
 		if err != nil {
 			switch err.Error() {
 			case "invalid token":
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
+					"error": "Invalid token",
+				}, []string{})
 			case "invalid token type":
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type. Access token required"})
+				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
+					"error": "Invalid token type. Access token required",
+				}, []string{})
 			default:
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token validation failed"})
+				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
+					"error": "Token validation failed",
+				}, []string{})
 			}
+			c.Abort()
 			return
 		}
 
