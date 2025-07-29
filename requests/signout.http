@@ -1,1 +1,1 @@
-DELETE http://localhost:8080/auth/signout
+DELETE http://localhost:3380/auth/signout

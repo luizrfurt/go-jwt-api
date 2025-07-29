@@ -1,2 +1,2 @@
-POST http://localhost:8080/auth/refresh
+POST http://localhost:3380/auth/refresh
 Content-Type: application/json

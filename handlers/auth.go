@@ -92,12 +92,14 @@ func Me(c *gin.Context) {
 
 	type UserResponse struct {
 		ID       uint   `json:"id"`
+		Name     string `json:"name"`
 		Username string `json:"username"`
 		Email    string `json:"email"`
 	}
 
 	utils.SendJSON(c, http.StatusOK, gin.H{"user": UserResponse{
 		ID:       user.ID,
+		Name:     user.Name,
 		Username: user.Username,
 		Email:    user.Email,
 	}}, []string{})

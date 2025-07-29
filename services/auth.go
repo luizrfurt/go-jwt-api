@@ -100,6 +100,7 @@ func createUser(req validators.SignUpRequest) error {
 	}
 
 	user := models.User{
+		Name:     req.Name,
 		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hashedPassword),

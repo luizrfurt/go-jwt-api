@@ -5,12 +5,12 @@ meta:
   created: 1753221070198
   modified: 1753221123613
 collection:
-  - url: http://localhost:8080/auth/signup
+  - url: http://localhost:3380/auth/signup
     name: signup
     meta:
       id: req_7424d3ac9a144f458d7ff2379b0df3ad
       created: 1753221070639
-      modified: 1753634048102
+      modified: 1753793657736
       isPrivate: false
       sortKey: -1753221070639
     method: POST
@@ -18,7 +18,8 @@ collection:
       mimeType: application/json
       text: |-
         {
-          "username": "john",
+          "name": "John Doe",
+        	"username": "john",
         	"email": "john@mail.com",
           "password": "secret123"
         }
@@ -35,12 +36,12 @@ collection:
         send: true
         store: true
       rebuildPath: true
-  - url: http://localhost:8080/auth/signin
+  - url: http://localhost:3380/auth/signin
     name: signin
     meta:
       id: req_2a51f25308b043abbb21295b5a16e1b6
       created: 1753223473896
-      modified: 1753637349420
+      modified: 1753793666028
       isPrivate: false
       sortKey: -1753221070589
     method: POST
@@ -64,12 +65,12 @@ collection:
         send: true
         store: true
       rebuildPath: true
-  - url: http://localhost:8080/auth/me
+  - url: http://localhost:3380/auth/me
     name: me
     meta:
       id: req_8504546f9d0f49adbf3071bcb599c301
       created: 1753223568911
-      modified: 1753469933403
+      modified: 1753793675043
       isPrivate: false
       sortKey: -1753221070539
     method: GET
@@ -92,12 +93,12 @@ collection:
         send: true
         store: true
       rebuildPath: true
-  - url: http://localhost:8080/auth/refresh
+  - url: http://localhost:3380/auth/refresh
     name: refresh
     meta:
       id: req_1c4ad1e0ff4d4de8872662385eb59591
       created: 1753223878092
-      modified: 1753469915289
+      modified: 1753793671161
       isPrivate: false
       sortKey: -1753221070564
     method: POST
@@ -116,12 +117,12 @@ collection:
         send: true
         store: true
       rebuildPath: true
-  - url: http://localhost:8080/auth/signout
+  - url: http://localhost:3380/auth/signout
     name: signout
     meta:
       id: req_76bf2cd775bd4a1aa73155ce1893d0f2
       created: 1753223996586
-      modified: 1753469962362
+      modified: 1753793689458
       isPrivate: false
       sortKey: -1753221070489
     method: DELETE
@@ -144,12 +145,12 @@ collection:
         send: true
         store: true
       rebuildPath: true
-  - url: http://localhost:8080/home
+  - url: http://localhost:3380/home
     name: home
     meta:
       id: req_76edf8f5375d4a46a3371c6a75d6122d
       created: 1753224133418
-      modified: 1753711552575
+      modified: 1753793679879
       isPrivate: false
       sortKey: -1753221070514
     method: GET
@@ -172,12 +173,12 @@ collection:
         send: true
         store: true
       rebuildPath: true
-  - url: http://localhost:8080/settings
+  - url: http://localhost:3380/settings
     name: settings
     meta:
       id: req_d5c589a958c14477bf39f1881d1a3ac9
       created: 1753224138925
-      modified: 1753469959723
+      modified: 1753793683557
       isPrivate: false
       sortKey: -1753221070501.5
     method: GET
@@ -200,12 +201,12 @@ collection:
         send: true
         store: true
       rebuildPath: true
-  - url: http://localhost:8080/
+  - url: http://localhost:3380/
     name: /
     meta:
       id: req_57619301519f4e3497dbfbfbc17a4243
       created: 1753633331535
-      modified: 1753633352806
+      modified: 1753793640874
       isPrivate: false
       sortKey: -1753633331535
     method: GET

@@ -1,1 +1,1 @@
-GET http://localhost:8080/auth/settings
+GET http://localhost:3380/auth/settings
