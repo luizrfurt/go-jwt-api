@@ -73,6 +73,18 @@ func ClearTokenCookies(c *gin.Context) {
 	c.SetCookie("auth_status", "", -1, "/", CookieDomain, CookieSecure, false)
 }
 
+func findUserByID(id uint) (*models.User, error) {
+	var user models.User
+	err := db.DB.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+	}
+	return &user, nil
+}
+
 func findUserByUsername(username string) (*models.User, error) {
 	var user models.User
 	err := db.DB.Where("username = ?", username).First(&user).Error
@@ -147,6 +159,47 @@ func RegisterUser(req validators.SignUpRequest) error {
 	}
 
 	return createUser(req)
+}
+
+func UpdateUser(req validators.MeEditRequest) (*models.User, error) {
+	user, err := findUserByID(req.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	existingUser, err := findUserByUsername(req.Username)
+	if err != nil && !errors.Is(err, ErrUserNotFound) {
+		return nil, err
+	}
+	if err == nil && existingUser.ID != req.ID {
+		return nil, ErrUsernameExists
+	}
+
+	existingUser, err = FindUserByEmail(req.Email)
+	if err != nil && !errors.Is(err, ErrUserNotFound) {
+		return nil, err
+	}
+	if err == nil && existingUser.ID != req.ID {
+		return nil, ErrEmailExists
+	}
+
+	user.Name = req.Name
+	user.Username = req.Username
+	user.Email = req.Email
+
+	if req.NewPassword != nil && *req.NewPassword != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrHashPassword, err)
+		}
+		user.Password = string(hashedPassword)
+	}
+
+	if err := db.DB.Save(user).Error; err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+	}
+
+	return user, nil
 }
 
 func AuthenticateUser(username, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, err error) {

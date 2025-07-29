@@ -106,6 +106,55 @@ func Me(c *gin.Context) {
 	}}, []string{})
 }
 
+func MeEdit(c *gin.Context) {
+	var req validators.MeEditRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		exceptions.Error(c, http.StatusBadRequest, "Invalid edit request.")
+		return
+	}
+	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
+		exceptions.ValidationError(c, validationErrors)
+		return
+	}
+
+	updatedUser, err := services.UpdateUser(req)
+	if err != nil {
+		customMappings := map[error]exceptions.ErrorMapping{
+			services.ErrUserNotFound: {
+				StatusCode: http.StatusNotFound,
+				Message:    "User not found.",
+			},
+			services.ErrUsernameExists: {
+				StatusCode: http.StatusConflict,
+				Message:    "Username is already in use by another user.",
+			},
+			services.ErrEmailExists: {
+				StatusCode: http.StatusConflict,
+				Message:    "Email is already in use by another user.",
+			},
+		}
+		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
+		return
+	}
+
+	type UserResponse struct {
+		ID       uint   `json:"id"`
+		Name     string `json:"name"`
+		Username string `json:"username"`
+		Email    string `json:"email"`
+	}
+
+	utils.SendJSON(c, http.StatusOK, gin.H{
+		"message": "Profile updated successfully.",
+		"user": UserResponse{
+			ID:       updatedUser.ID,
+			Name:     updatedUser.Name,
+			Username: updatedUser.Username,
+			Email:    updatedUser.Email,
+		},
+	}, []string{})
+}
+
 func SignOut(c *gin.Context) {
 	services.ClearTokenCookies(c)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign out successful."}, []string{})
