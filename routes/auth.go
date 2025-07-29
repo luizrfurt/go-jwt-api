@@ -17,6 +17,8 @@ func RegisterAuthRoutes(r *gin.Engine) {
 		authGroup.DELETE("/signout", handlers.SignOut)
 
 		authGroup.POST("/forgot-password", handlers.ForgotPassword)
+		authGroup.GET("/reset-password/valid-token/:token", handlers.ResetPasswordValidToken)
+		authGroup.POST("/reset-password/change-password/:token", handlers.ResetPasswordChangePassword)
 
 		protected := authGroup.Group("/")
 		protected.Use(middlewares.AuthMiddleware())

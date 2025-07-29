@@ -38,6 +38,7 @@ var (
 	ErrGenerateTokens    = errors.New("could not generate tokens")
 	ErrInvalidToken      = errors.New("invalid token")
 	ErrInvalidTokenType  = errors.New("invalid token type")
+	ErrInvalidResetToken = errors.New("invalid or expired reset token")
 )
 
 type Claims struct {
@@ -87,6 +88,18 @@ func findUserByUsername(username string) (*models.User, error) {
 func FindUserByEmail(email string) (*models.User, error) {
 	var user models.User
 	err := db.DB.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+	}
+	return &user, nil
+}
+
+func findUserByForgotPasswordToken(token string) (*models.User, error) {
+	var user models.User
+	err := db.DB.Where("forgot_password_token = ?", token).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
@@ -290,6 +303,42 @@ func SendPasswordRecoveryEmail(user *models.User, token string) error {
 
 	if err := utils.SendEmail(user.Email, "Password Recovery", body); err != nil {
 		return fmt.Errorf("failed to send recovery email: %w", err)
+	}
+
+	return nil
+}
+
+func IsResetPasswordTokenValid(token string) (bool, error) {
+	_, err := findUserByForgotPasswordToken(token)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+	}
+
+	return true, nil
+}
+
+func ChangePasswordWithToken(token, newPassword string) error {
+	user, err := findUserByForgotPasswordToken(token)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return ErrInvalidResetToken
+		}
+		return fmt.Errorf("%w: %v", ErrDatabaseError, err)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrHashPassword, err)
+	}
+
+	user.Password = string(hashedPassword)
+	user.ForgotPasswordToken = ""
+
+	if err := db.DB.Save(user).Error; err != nil {
+		return fmt.Errorf("%w: %v", ErrDatabaseError, err)
 	}
 
 	return nil

@@ -249,6 +249,63 @@ collection:
         send: true
         store: true
       rebuildPath: true
+  - url: http://localhost:3380/auth/reset-password/valid-token/:token
+    name: reset-password.valid-token
+    meta:
+      id: req_c542596e92b648bd8c9c08db9d36110f
+      created: 1753799210518
+      modified: 1753808470638
+      isPrivate: false
+      sortKey: -1753221070601.5
+    method: GET
+    body:
+      mimeType: application/json
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+    pathParameters:
+      - name: token
+  - url: http://localhost:3380/auth/reset-password/change-password/:token
+    name: reset-password.change-password
+    meta:
+      id: req_f17cd96d80f84eb7a4a08c3e1c18be28
+      created: 1753799237504
+      modified: 1753808477342
+      isPrivate: false
+      sortKey: -1753221070595.25
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"new_password": "secret321",
+        	"confirm_new_password": "secret321"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+    pathParameters:
+      - name: token
 cookieJar:
   name: Default Jar
   meta:

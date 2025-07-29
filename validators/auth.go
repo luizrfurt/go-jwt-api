@@ -16,3 +16,8 @@ type SignInRequest struct {
 type ForgotPasswordRequest struct {
 	Email string `json:"email" validate:"required,email"`
 }
+
+type ResetPasswordRequest struct {
+	NewPassword        string `json:"new_password" validate:"required,min=6"`
+	ConfirmNewPassword string `json:"confirm_new_password" validate:"required,eqfield=NewPassword"`
+}

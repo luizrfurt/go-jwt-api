@@ -150,3 +150,67 @@ func ForgotPassword(c *gin.Context) {
 		"message": fmt.Sprintf("Password recovery instructions sent to %s.", user.Email),
 	}, []string{})
 }
+
+func ResetPasswordValidToken(c *gin.Context) {
+	token := c.Param("token")
+	if token == "" {
+		exceptions.Error(c, http.StatusBadRequest, "Token is required.")
+		return
+	}
+
+	isValid, err := services.IsResetPasswordTokenValid(token)
+	if err != nil {
+		exceptions.AuthError(c, err)
+		return
+	}
+
+	if !isValid {
+		exceptions.Error(c, http.StatusBadRequest, "Invalid or expired token.")
+		return
+	}
+
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Token is valid."}, []string{})
+}
+
+func ResetPasswordChangePassword(c *gin.Context) {
+	token := c.Param("token")
+	if token == "" {
+		exceptions.Error(c, http.StatusBadRequest, "Token is required.")
+		return
+	}
+
+	isValid, err := services.IsResetPasswordTokenValid(token)
+	if err != nil {
+		exceptions.AuthError(c, err)
+		return
+	}
+
+	if !isValid {
+		exceptions.Error(c, http.StatusBadRequest, "Invalid or expired token.")
+		return
+	}
+
+	var req validators.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		exceptions.Error(c, http.StatusBadRequest, "Invalid reset-password request.")
+		return
+	}
+
+	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
+		exceptions.ValidationError(c, validationErrors)
+		return
+	}
+
+	if err := services.ChangePasswordWithToken(token, req.NewPassword); err != nil {
+		customMappings := map[error]exceptions.ErrorMapping{
+			services.ErrInvalidResetToken: {
+				StatusCode: http.StatusBadRequest,
+				Message:    "Invalid or expired reset token.",
+			},
+		}
+		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
+		return
+	}
+
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Password changed successfully."}, []string{})
+}
