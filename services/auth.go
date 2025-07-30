@@ -66,13 +66,13 @@ func InitAuthConfig() {
 func SetTokenCookies(c *gin.Context, accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time) {
 	c.SetCookie("access_token", accessToken, int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("refresh_token", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
-	c.SetCookie("auth_status", "authenticated", int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
+	// c.SetCookie("auth_status", "authenticated", int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
 }
 
 func ClearTokenCookies(c *gin.Context) {
 	c.SetCookie("access_token", "", -1, "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("refresh_token", "", -1, "/", CookieDomain, CookieSecure, true)
-	c.SetCookie("auth_status", "", -1, "/", CookieDomain, CookieSecure, false)
+	// c.SetCookie("auth_status", "", -1, "/", CookieDomain, CookieSecure, false)
 }
 
 func findUserByID(id uint) (*models.User, error) {
