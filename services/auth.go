@@ -42,7 +42,9 @@ var (
 )
 
 type Claims struct {
+	Id    uint   `json:"id"`
 	Username  string `json:"username"`
+	Email     string `json:"email"`
 	TokenType string `json:"token_type"`
 	jwt.RegisteredClaims
 }
@@ -212,7 +214,7 @@ func AuthenticateUser(username, password string) (accessToken, refreshToken stri
 		return "", "", time.Time{}, time.Time{}, ErrIncorrectPassword
 	}
 
-	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Username)
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.ID, user.Username, user.Email)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrGenerateTokens, err)
 	}
@@ -234,12 +236,12 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 		return "", "", time.Time{}, time.Time{}, ErrInvalidTokenType
 	}
 
-	_, err = findUserByUsername(claims.Username)
+	user, err := findUserByUsername(claims.Username)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, err
 	}
 
-	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(claims.Username)
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.ID, user.Username, user.Email)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrGenerateTokens, err)
 	}
@@ -268,12 +270,14 @@ func ValidateAccessToken(tokenStr string) (*Claims, error) {
 	return claims, nil
 }
 
-func generateTokenPair(username string) (accessToken, refreshToken string, expiresIn int64, accessExpiration, refreshExpiration time.Time, err error) {
+func generateTokenPair(id uint, username, email string) (accessToken, refreshToken string, expiresIn int64, accessExpiration, refreshExpiration time.Time, err error) {
 	now := time.Now()
 
 	accessExpiration = now.Add(15 * time.Minute)
 	accessClaims := &Claims{
+		Id:    id,
 		Username:  username,
+		Email:     email,
 		TokenType: "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(accessExpiration),
@@ -289,7 +293,9 @@ func generateTokenPair(username string) (accessToken, refreshToken string, expir
 
 	refreshExpiration = now.Add(7 * 24 * time.Hour)
 	refreshClaims := &Claims{
+		Id:    id,
 		Username:  username,
+		Email:     email,
 		TokenType: "refresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(refreshExpiration),
