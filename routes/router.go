@@ -7,6 +7,6 @@ import (
 
 func SetupRoutes(r *gin.Engine) {
 	RegisterAuthRoutes(r)
-	RegisterHomeRoutes(r)
+	RegisterDashboardRoutes(r)
 	RegisterSettingsRoutes(r)
 }

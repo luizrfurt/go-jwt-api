@@ -109,7 +109,7 @@ func Me(c *gin.Context) {
 func MeEdit(c *gin.Context) {
 	var req validators.MeEditRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid edit request.")
+		exceptions.Error(c, http.StatusBadRequest, "Invalid me-edit request.")
 		return
 	}
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
