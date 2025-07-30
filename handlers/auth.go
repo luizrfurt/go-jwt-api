@@ -117,7 +117,13 @@ func MeEdit(c *gin.Context) {
 		return
 	}
 
-	updatedUser, err := services.UpdateUser(req)
+	userID, exists := c.Get("id")
+	if !exists {
+		exceptions.Error(c, http.StatusInternalServerError, "User ID not found in context.")
+		return
+	}
+
+	updatedUser, err := services.UpdateUser(userID.(uint), req)
 	if err != nil {
 		customMappings := map[error]exceptions.ErrorMapping{
 			services.ErrUserNotFound: {

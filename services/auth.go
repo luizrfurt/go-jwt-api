@@ -42,7 +42,7 @@ var (
 )
 
 type Claims struct {
-	Id    uint   `json:"id"`
+	Id        uint   `json:"id"`
 	Username  string `json:"username"`
 	Email     string `json:"email"`
 	TokenType string `json:"token_type"`
@@ -163,26 +163,30 @@ func RegisterUser(req validators.SignUpRequest) error {
 	return createUser(req)
 }
 
-func UpdateUser(req validators.MeEditRequest) (*models.User, error) {
-	user, err := findUserByID(req.ID)
+func UpdateUser(userID uint, req validators.MeEditRequest) (*models.User, error) {
+	user, err := findUserByID(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	existingUser, err := findUserByUsername(req.Username)
-	if err != nil && !errors.Is(err, ErrUserNotFound) {
-		return nil, err
-	}
-	if err == nil && existingUser.ID != req.ID {
-		return nil, ErrUsernameExists
+	if req.Username != user.Username {
+		_, err := findUserByUsername(req.Username)
+		if err != nil && !errors.Is(err, ErrUserNotFound) {
+			return nil, err
+		}
+		if err == nil {
+			return nil, ErrUsernameExists
+		}
 	}
 
-	existingUser, err = FindUserByEmail(req.Email)
-	if err != nil && !errors.Is(err, ErrUserNotFound) {
-		return nil, err
-	}
-	if err == nil && existingUser.ID != req.ID {
-		return nil, ErrEmailExists
+	if req.Email != user.Email {
+		_, err := FindUserByEmail(req.Email)
+		if err != nil && !errors.Is(err, ErrUserNotFound) {
+			return nil, err
+		}
+		if err == nil {
+			return nil, ErrEmailExists
+		}
 	}
 
 	user.Name = req.Name
@@ -275,7 +279,7 @@ func generateTokenPair(id uint, username, email string) (accessToken, refreshTok
 
 	accessExpiration = now.Add(15 * time.Minute)
 	accessClaims := &Claims{
-		Id:    id,
+		Id:        id,
 		Username:  username,
 		Email:     email,
 		TokenType: "access",
@@ -293,7 +297,7 @@ func generateTokenPair(id uint, username, email string) (accessToken, refreshTok
 
 	refreshExpiration = now.Add(7 * 24 * time.Hour)
 	refreshClaims := &Claims{
-		Id:    id,
+		Id:        id,
 		Username:  username,
 		Email:     email,
 		TokenType: "refresh",

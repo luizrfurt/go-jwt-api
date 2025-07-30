@@ -10,7 +10,7 @@ collection:
     meta:
       id: req_7424d3ac9a144f458d7ff2379b0df3ad
       created: 1753221070639
-      modified: 1753793657736
+      modified: 1753838874777
       isPrivate: false
       sortKey: -1753221070639
     method: POST
@@ -41,7 +41,7 @@ collection:
     meta:
       id: req_2a51f25308b043abbb21295b5a16e1b6
       created: 1753223473896
-      modified: 1753793666028
+      modified: 1753839157478
       isPrivate: false
       sortKey: -1753221070589
     method: POST
@@ -311,7 +311,7 @@ collection:
     meta:
       id: req_c16cbea14a7149b3b9ab21c57442cbbf
       created: 1753834024545
-      modified: 1753835222163
+      modified: 1753839198939
       isPrivate: false
       sortKey: -1753834024545
     method: PUT
@@ -319,11 +319,10 @@ collection:
       mimeType: application/json
       text: |-
         {
-          "id": 1,
         	"name": "John Doe",
         	"username": "john",
         	"email": "john@mail.com"
-        	//"new_passowrd": "secret123" // remove if not change password
+        	// "new_password": "secret321" // remove for no update password
         }
     headers:
       - name: Content-Type
@@ -343,37 +342,37 @@ cookieJar:
   meta:
     id: jar_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
     created: 1753221070224
-    modified: 1753835356724
+    modified: 1753839201726
   cookies:
     - key: access_token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzODM2MjU2LCJpYXQiOjE3NTM4MzUzNTZ9.TiHdVAJESFqx8_oZKRS8r1qa6d-LYvl4tSV6dlHF4cE
-      maxAge: 899
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJqb2huIiwiZW1haWwiOiJqb2huQG1haWwuY29tIiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImV4cCI6MTc1Mzg0MDEwMSwiaWF0IjoxNzUzODM5MjAxfQ.41iHox51tyotNa6I7PvNgt7vjESfAx6A8IUFD0wP2T4
+      maxAge: 900
       domain: localhost
       path: /
       httpOnly: true
       hostOnly: true
-      creation: 2025-07-27T15:42:09.480Z
-      lastAccessed: 2025-07-30T00:29:16.717Z
-      id: fe0762d6-ffc0-49fb-abbc-fc5dd6af1f08
+      creation: 2025-07-30T00:42:55.771Z
+      lastAccessed: 2025-07-30T01:33:21.726Z
+      id: f85444f0-7535-42b7-a136-5ea38307b6a4
     - key: refresh_token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NDQ0MDE1NiwiaWF0IjoxNzUzODM1MzU2fQ.8p-84x2vd-24iAa27ngC_RxZKhgTzOr6cnndt81awIc
-      maxAge: 604799
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJqb2huIiwiZW1haWwiOiJqb2huQG1haWwuY29tIiwidG9rZW5fdHlwZSI6InJlZnJlc2giLCJleHAiOjE3NTQ0NDQwMDEsImlhdCI6MTc1MzgzOTIwMX0.XI7aKTTSqnccct6PsQtKBP0BNdHZ8x6K7BkABYW92sw
+      maxAge: 604800
       domain: localhost
       path: /
       httpOnly: true
       hostOnly: true
-      creation: 2025-07-27T15:42:09.482Z
-      lastAccessed: 2025-07-30T00:29:16.722Z
-      id: 80917c39-7aa2-4b94-86f2-28434de591bd
+      creation: 2025-07-30T00:42:55.772Z
+      lastAccessed: 2025-07-30T01:33:21.726Z
+      id: 5bd557fd-bbcc-429e-86cc-dd6f3ee6534c
     - key: auth_status
       value: authenticated
-      maxAge: 899
+      maxAge: 900
       domain: localhost
       path: /
       hostOnly: true
-      creation: 2025-07-27T15:42:09.482Z
-      lastAccessed: 2025-07-30T00:29:16.723Z
-      id: fb00dc52-0406-4145-ba08-8cfe440c512b
+      creation: 2025-07-30T00:42:55.772Z
+      lastAccessed: 2025-07-30T01:33:21.726Z
+      id: e7198a1e-27b7-4920-9fa3-27a185dbe4c6
 environments:
   name: Base Environment
   meta:
