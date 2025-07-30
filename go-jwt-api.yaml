@@ -145,12 +145,12 @@ collection:
         send: true
         store: true
       rebuildPath: true
-  - url: http://localhost:3380/home
-    name: home
+  - url: http://localhost:3380/dashboard
+    name: dashboard
     meta:
       id: req_76edf8f5375d4a46a3371c6a75d6122d
       created: 1753224133418
-      modified: 1753793679879
+      modified: 1753833868291
       isPrivate: false
       sortKey: -1753221070514
     method: GET
@@ -306,42 +306,74 @@ collection:
       rebuildPath: true
     pathParameters:
       - name: token
+  - url: http://localhost:3380/auth/me
+    name: me
+    meta:
+      id: req_c16cbea14a7149b3b9ab21c57442cbbf
+      created: 1753834024545
+      modified: 1753835222163
+      isPrivate: false
+      sortKey: -1753834024545
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "id": 1,
+        	"name": "John Doe",
+        	"username": "john",
+        	"email": "john@mail.com"
+        	//"new_passowrd": "secret123" // remove if not change password
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
     id: jar_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
     created: 1753221070224
-    modified: 1753711558009
+    modified: 1753835356724
   cookies:
     - key: access_token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNzEyNDU4LCJpYXQiOjE3NTM3MTE1NTh9.I5Nxntj92qeyxOCbhRqisoEjVqPzP6NUOxGRLVQ1-b0
-      maxAge: 900
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzODM2MjU2LCJpYXQiOjE3NTM4MzUzNTZ9.TiHdVAJESFqx8_oZKRS8r1qa6d-LYvl4tSV6dlHF4cE
+      maxAge: 899
       domain: localhost
       path: /
       httpOnly: true
       hostOnly: true
       creation: 2025-07-27T15:42:09.480Z
-      lastAccessed: 2025-07-28T14:05:58.007Z
-      id: b4b54939-9da0-45db-abbd-dead85b5a2cb
+      lastAccessed: 2025-07-30T00:29:16.717Z
+      id: fe0762d6-ffc0-49fb-abbc-fc5dd6af1f08
     - key: refresh_token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NDMxNjM1OCwiaWF0IjoxNzUzNzExNTU4fQ.OD8w_0HY_QG5ugDGqefBEpxGClw5p4vtD0_DWnOeOrc
-      maxAge: 604800
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NDQ0MDE1NiwiaWF0IjoxNzUzODM1MzU2fQ.8p-84x2vd-24iAa27ngC_RxZKhgTzOr6cnndt81awIc
+      maxAge: 604799
       domain: localhost
       path: /
       httpOnly: true
       hostOnly: true
       creation: 2025-07-27T15:42:09.482Z
-      lastAccessed: 2025-07-28T14:05:58.009Z
-      id: ce4851e0-e37d-4a87-8094-7342e0190774
+      lastAccessed: 2025-07-30T00:29:16.722Z
+      id: 80917c39-7aa2-4b94-86f2-28434de591bd
     - key: auth_status
       value: authenticated
-      maxAge: 900
+      maxAge: 899
       domain: localhost
       path: /
       hostOnly: true
       creation: 2025-07-27T15:42:09.482Z
-      lastAccessed: 2025-07-28T14:05:58.009Z
-      id: 6d1363c8-1c63-4bbe-9a76-37ad17ad4041
+      lastAccessed: 2025-07-30T00:29:16.723Z
+      id: fb00dc52-0406-4145-ba08-8cfe440c512b
 environments:
   name: Base Environment
   meta:
