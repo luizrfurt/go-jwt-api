@@ -75,7 +75,7 @@ func ClearTokenCookies(c *gin.Context) {
 	c.SetCookie("auth_status", "", -1, "/", CookieDomain, CookieSecure, false)
 }
 
-func findUserByID(id uint) (*models.User, error) {
+func findUserById(id uint) (*models.User, error) {
 	var user models.User
 	err := db.DB.Where("id = ?", id).First(&user).Error
 	if err != nil {
@@ -163,8 +163,8 @@ func RegisterUser(req validators.SignUpRequest) error {
 	return createUser(req)
 }
 
-func UpdateUser(userID uint, req validators.UpdateMeRequest) (*models.User, error) {
-	user, err := findUserByID(userID)
+func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, error) {
+	user, err := findUserById(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func AuthenticateUser(username, password string) (accessToken, refreshToken stri
 		return "", "", time.Time{}, time.Time{}, ErrIncorrectPassword
 	}
 
-	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.ID, user.Username, user.Email)
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id, user.Username, user.Email)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrGenerateTokens, err)
 	}
@@ -245,7 +245,7 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 		return "", "", time.Time{}, time.Time{}, err
 	}
 
-	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.ID, user.Username, user.Email)
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id, user.Username, user.Email)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrGenerateTokens, err)
 	}

@@ -31,7 +31,7 @@ func main() {
 	}))
 
 	r.GET("/", func(c *gin.Context) {
-		utils.SendJSON(c, http.StatusOK, gin.H{"message": "API is running."}, []string{})
+		utils.SendJSON(c, http.StatusOK, gin.H{"message": "API is running"}, []string{})
 	})
 
 	routes.SetupRoutes(r)

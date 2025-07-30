@@ -23,43 +23,43 @@ type ErrorMapping struct {
 var authErrorMap = map[error]ErrorMapping{
 	services.ErrUsernameExists: {
 		StatusCode: http.StatusBadRequest,
-		Message:    "Username already exists.",
+		Message:    "Username already exists",
 	},
 	services.ErrEmailExists: {
 		StatusCode: http.StatusBadRequest,
-		Message:    "Email already exists.",
+		Message:    "Email already exists",
 	},
 	services.ErrUserNotFound: {
 		StatusCode: http.StatusUnauthorized,
-		Message:    "User not found.",
+		Message:    "User not found",
 	},
 	services.ErrIncorrectPassword: {
 		StatusCode: http.StatusUnauthorized,
-		Message:    "Incorrect password.",
+		Message:    "Incorrect password",
 	},
 	services.ErrInvalidToken: {
 		StatusCode: http.StatusUnauthorized,
-		Message:    "Invalid token.",
+		Message:    "Invalid token",
 	},
 	services.ErrInvalidTokenType: {
 		StatusCode: http.StatusUnauthorized,
-		Message:    "Invalid token type.",
+		Message:    "Invalid token type",
 	},
 	services.ErrHashPassword: {
 		StatusCode: http.StatusInternalServerError,
-		Message:    "Could not hash password.",
+		Message:    "Could not hash password",
 	},
 	services.ErrCreateUser: {
 		StatusCode: http.StatusInternalServerError,
-		Message:    "Failed to create user.",
+		Message:    "Failed to create user",
 	},
 	services.ErrGenerateTokens: {
 		StatusCode: http.StatusInternalServerError,
-		Message:    "Could not generate tokens.",
+		Message:    "Could not generate tokens",
 	},
 	services.ErrDatabaseError: {
 		StatusCode: http.StatusInternalServerError,
-		Message:    "Database error.",
+		Message:    "Database error",
 	},
 }
 
@@ -70,7 +70,7 @@ func AuthError(c *gin.Context, err error) {
 			return
 		}
 	}
-	utils.SendJSONError(c, http.StatusInternalServerError, ErrorResponse{Error: "Internal server error."}, []string{})
+	utils.SendJSONError(c, http.StatusInternalServerError, ErrorResponse{Error: "Internal server error"}, []string{})
 }
 
 func AuthErrorWithCustomStatus(c *gin.Context, err error, customMappings map[error]ErrorMapping) {

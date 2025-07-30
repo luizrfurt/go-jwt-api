@@ -4,7 +4,7 @@ package models
 import "time"
 
 type User struct {
-	ID                  uint   `gorm:"primaryKey"`
+	Id                  uint   `gorm:"primaryKey"`
 	Name                string `gorm:"not null"`
 	Username            string `gorm:"uniqueIndex;not null"`
 	Email               string `gorm:"uniqueIndex;not null"`

@@ -14,7 +14,7 @@ func RegisterSettingsRoutes(r *gin.Engine) {
 	settingsGroup.Use(middlewares.AuthMiddleware())
 	{
 		settingsGroup.GET("/", func(c *gin.Context) {
-			utils.SendJSON(c, http.StatusOK, gin.H{"message": "These are your settings."}, []string{})
+			utils.SendJSON(c, http.StatusOK, gin.H{"message": "These are your settings"}, []string{})
 
 		})
 	}
