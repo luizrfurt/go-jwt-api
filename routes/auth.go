@@ -24,7 +24,7 @@ func RegisterAuthRoutes(r *gin.Engine) {
 		protected.Use(middlewares.AuthMiddleware())
 		{
 			protected.GET("/me", handlers.Me)
-			protected.PUT("/me", handlers.MeEdit)
+			protected.PUT("/me", handlers.UpdateMe)
 		}
 	}
 }

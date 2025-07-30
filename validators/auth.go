@@ -22,7 +22,7 @@ type ResetPasswordRequest struct {
 	ConfirmNewPassword string `json:"confirm_new_password" validate:"required,eqfield=NewPassword"`
 }
 
-type MeEditRequest struct {
+type UpdateMeRequest struct {
 	Name        string  `json:"name" validate:"required,min=3,max=50"`
 	Username    string  `json:"username" validate:"required,min=3,max=20"`
 	Email       string  `json:"email" validate:"required,email"`

@@ -163,7 +163,7 @@ func RegisterUser(req validators.SignUpRequest) error {
 	return createUser(req)
 }
 
-func UpdateUser(userID uint, req validators.MeEditRequest) (*models.User, error) {
+func UpdateUser(userID uint, req validators.UpdateMeRequest) (*models.User, error) {
 	user, err := findUserByID(userID)
 	if err != nil {
 		return nil, err

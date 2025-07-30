@@ -106,8 +106,8 @@ func Me(c *gin.Context) {
 	}}, []string{})
 }
 
-func MeEdit(c *gin.Context) {
-	var req validators.MeEditRequest
+func UpdateMe(c *gin.Context) {
+	var req validators.UpdateMeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		exceptions.Error(c, http.StatusBadRequest, "Invalid me-edit request.")
 		return
