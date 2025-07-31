@@ -13,7 +13,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenStr, err := c.Cookie("access_token")
 		if err != nil || tokenStr == "" {
 			utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
-				"error": "Missing or malformed token",
+				"error": "Access token is required",
 			}, []string{})
 			c.Abort()
 			return
@@ -24,15 +24,15 @@ func AuthMiddleware() gin.HandlerFunc {
 			switch err.Error() {
 			case "invalid token":
 				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
-					"error": "Invalid token",
+					"error": "The provided token is invalid or expired",
 				}, []string{})
 			case "invalid token type":
 				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
-					"error": "Invalid token type. Access token required",
+					"error": "Invalid token type provided. Access token is required",
 				}, []string{})
 			default:
 				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
-					"error": "Token validation failed",
+					"error": "Authentication failed. Please provide a valid access token",
 				}, []string{})
 			}
 			c.Abort()
