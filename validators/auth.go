@@ -5,12 +5,12 @@ type SignUpRequest struct {
 	Name     string `json:"name" validate:"required,min=3,max=50"`
 	Username string `json:"username" validate:"required,min=3,max=20"`
 	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
+	Password string `json:"password" validate:"required,min=6,max=30"`
 }
 
 type SignInRequest struct {
 	Username string `json:"username" validate:"required,min=3,max=20"`
-	Password string `json:"password" validate:"required"`
+	Password string `json:"password" validate:"required,min=6,max=30"`
 }
 
 type ForgotPasswordRequest struct {
@@ -18,7 +18,7 @@ type ForgotPasswordRequest struct {
 }
 
 type ResetPasswordRequest struct {
-	NewPassword        string `json:"new_password" validate:"required,min=6"`
+	NewPassword        string `json:"new_password" validate:"required,min=6,max=30"`
 	ConfirmNewPassword string `json:"confirm_new_password" validate:"required,eqfield=NewPassword"`
 }
 
@@ -26,5 +26,5 @@ type UpdateMeRequest struct {
 	Name        string  `json:"name" validate:"required,min=3,max=50"`
 	Username    string  `json:"username" validate:"required,min=3,max=20"`
 	Email       string  `json:"email" validate:"required,email"`
-	NewPassword *string `json:"new_password,omitempty" validate:"omitempty,min=6"`
+	NewPassword *string `json:"new_password,omitempty" validate:"omitempty,min=6,max=30"`
 }
