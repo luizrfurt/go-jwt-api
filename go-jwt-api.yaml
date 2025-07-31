@@ -6,11 +6,11 @@ meta:
   modified: 1753221123613
 collection:
   - url: http://localhost:3380/auth/signup
-    name: signup
+    name: /auth/signup
     meta:
       id: req_7424d3ac9a144f458d7ff2379b0df3ad
       created: 1753221070639
-      modified: 1753838874777
+      modified: 1753989836519
       isPrivate: false
       sortKey: -1753221070639
     method: POST
@@ -37,11 +37,11 @@ collection:
         store: true
       rebuildPath: true
   - url: http://localhost:3380/auth/signin
-    name: signin
+    name: /auth/signin
     meta:
       id: req_2a51f25308b043abbb21295b5a16e1b6
       created: 1753223473896
-      modified: 1753839157478
+      modified: 1753989908649
       isPrivate: false
       sortKey: -1753221070589
     method: POST
@@ -66,11 +66,11 @@ collection:
         store: true
       rebuildPath: true
   - url: http://localhost:3380/auth/me
-    name: me
+    name: /auth/me
     meta:
       id: req_8504546f9d0f49adbf3071bcb599c301
       created: 1753223568911
-      modified: 1753793675043
+      modified: 1753989920051
       isPrivate: false
       sortKey: -1753221070539
     method: GET
@@ -94,11 +94,11 @@ collection:
         store: true
       rebuildPath: true
   - url: http://localhost:3380/auth/refresh
-    name: refresh
+    name: /auth/refresh
     meta:
       id: req_1c4ad1e0ff4d4de8872662385eb59591
       created: 1753223878092
-      modified: 1753793671161
+      modified: 1753989914175
       isPrivate: false
       sortKey: -1753221070564
     method: POST
@@ -118,70 +118,14 @@ collection:
         store: true
       rebuildPath: true
   - url: http://localhost:3380/auth/signout
-    name: signout
+    name: /auth/signout
     meta:
       id: req_76bf2cd775bd4a1aa73155ce1893d0f2
       created: 1753223996586
-      modified: 1753793689458
+      modified: 1753989941175
       isPrivate: false
       sortKey: -1753221070489
     method: DELETE
-    body:
-      mimeType: application/json
-    headers:
-      - name: Content-Type
-        value: application/json
-        id: pair_c60d3dc7d3a74adaaf20a753b2c35985
-      - name: User-Agent
-        value: insomnia/11.1.0
-        id: pair_bfb9a390c63047639c3f55973ae64511
-    authentication:
-      type: none
-    settings:
-      renderRequestBody: true
-      encodeUrl: true
-      followRedirects: global
-      cookies:
-        send: true
-        store: true
-      rebuildPath: true
-  - url: http://localhost:3380/dashboard
-    name: dashboard
-    meta:
-      id: req_76edf8f5375d4a46a3371c6a75d6122d
-      created: 1753224133418
-      modified: 1753833868291
-      isPrivate: false
-      sortKey: -1753221070514
-    method: GET
-    body:
-      mimeType: application/json
-    headers:
-      - name: Content-Type
-        value: application/json
-        id: pair_c60d3dc7d3a74adaaf20a753b2c35985
-      - name: User-Agent
-        value: insomnia/11.1.0
-        id: pair_bfb9a390c63047639c3f55973ae64511
-    authentication:
-      type: none
-    settings:
-      renderRequestBody: true
-      encodeUrl: true
-      followRedirects: global
-      cookies:
-        send: true
-        store: true
-      rebuildPath: true
-  - url: http://localhost:3380/settings
-    name: settings
-    meta:
-      id: req_d5c589a958c14477bf39f1881d1a3ac9
-      created: 1753224138925
-      modified: 1753793683557
-      isPrivate: false
-      sortKey: -1753221070501.5
-    method: GET
     body:
       mimeType: application/json
     headers:
@@ -222,11 +166,11 @@ collection:
         store: true
       rebuildPath: true
   - url: http://localhost:3380/auth/forgot-password
-    name: forgot-password
+    name: /auth/forgot-password
     meta:
       id: req_803e79237c564f28b067eacd61445f59
       created: 1753796503371
-      modified: 1753796539867
+      modified: 1753989847281
       isPrivate: false
       sortKey: -1753221070614
     method: POST
@@ -250,11 +194,11 @@ collection:
         store: true
       rebuildPath: true
   - url: http://localhost:3380/auth/reset-password/valid-token/:token
-    name: reset-password.valid-token
+    name: /auth/reset-password/valid-token/:token
     meta:
       id: req_c542596e92b648bd8c9c08db9d36110f
       created: 1753799210518
-      modified: 1753808470638
+      modified: 1753989858155
       isPrivate: false
       sortKey: -1753221070601.5
     method: GET
@@ -276,11 +220,11 @@ collection:
     pathParameters:
       - name: token
   - url: http://localhost:3380/auth/reset-password/change-password/:token
-    name: reset-password.change-password
+    name: /auth/reset-password/change-password/:token
     meta:
       id: req_f17cd96d80f84eb7a4a08c3e1c18be28
       created: 1753799237504
-      modified: 1753808477342
+      modified: 1753989895022
       isPrivate: false
       sortKey: -1753221070595.25
     method: POST
@@ -307,11 +251,11 @@ collection:
     pathParameters:
       - name: token
   - url: http://localhost:3380/auth/me
-    name: me
+    name: /auth/me
     meta:
       id: req_c16cbea14a7149b3b9ab21c57442cbbf
       created: 1753834024545
-      modified: 1753839198939
+      modified: 1753989829997
       isPrivate: false
       sortKey: -1753834024545
     method: PUT
@@ -324,6 +268,30 @@ collection:
         	"email": "john@mail.com"
         	// "new_password": "secret321" // remove for no update password
         }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3380/auth/valid-session
+    name: /auth/valid-session
+    meta:
+      id: req_b0471cb658a64b60a3ab0ae01a67ee65
+      created: 1753989805568
+      modified: 1753989816430
+      isPrivate: false
+      sortKey: -1753221070592.125
+    method: POST
+    body:
+      mimeType: application/json
     headers:
       - name: Content-Type
         value: application/json
