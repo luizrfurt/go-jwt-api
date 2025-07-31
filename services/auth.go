@@ -134,6 +134,7 @@ func createUser(req validators.SignUpRequest) error {
 		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hashedPassword),
+		Main:     true,
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {

@@ -10,6 +10,7 @@ type User struct {
 	Email               string `gorm:"uniqueIndex;not null"`
 	Password            string `gorm:"not null"`
 	ForgotPasswordToken string `gorm:"default:null"`
+	Main                bool   `gorm:"default:true"`
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }

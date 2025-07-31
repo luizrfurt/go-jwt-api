@@ -96,6 +96,7 @@ func Me(c *gin.Context) {
 		Name     string `json:"name"`
 		Username string `json:"username"`
 		Email    string `json:"email"`
+		Main     bool   `json:"main"`
 	}
 
 	utils.SendJSON(c, http.StatusOK, gin.H{"user": UserResponse{
@@ -103,6 +104,7 @@ func Me(c *gin.Context) {
 		Name:     user.Name,
 		Username: user.Username,
 		Email:    user.Email,
+		Main:     user.Main,
 	}}, []string{})
 }
 
