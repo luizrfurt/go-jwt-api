@@ -52,11 +52,11 @@ func InitAuthConfig() {
 
 	if config.AppConfig.Environment == "production" {
 		CookieSecure = true
-		CookieDomain = "https://your-domain.com"
+		CookieDomain = "your-domain.com"
 		CookieSameSite = http.SameSiteStrictMode
 	} else {
 		CookieSecure = false
-		CookieDomain = ""
+		CookieDomain = "localhost"
 		CookieSameSite = http.SameSiteLaxMode
 	}
 }
