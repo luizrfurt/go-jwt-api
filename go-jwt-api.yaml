@@ -286,37 +286,7 @@ cookieJar:
   meta:
     id: jar_9c9e3f41393226fe461ec742f3f557cd3a1d53ce
     created: 1753221070224
-    modified: 1753839201726
-  cookies:
-    - key: access_token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJqb2huIiwiZW1haWwiOiJqb2huQG1haWwuY29tIiwidG9rZW5fdHlwZSI6ImFjY2VzcyIsImV4cCI6MTc1Mzg0MDEwMSwiaWF0IjoxNzUzODM5MjAxfQ.41iHox51tyotNa6I7PvNgt7vjESfAx6A8IUFD0wP2T4
-      maxAge: 900
-      domain: localhost
-      path: /
-      httpOnly: true
-      hostOnly: true
-      creation: 2025-07-30T00:42:55.771Z
-      lastAccessed: 2025-07-30T01:33:21.726Z
-      id: f85444f0-7535-42b7-a136-5ea38307b6a4
-    - key: refresh_token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJqb2huIiwiZW1haWwiOiJqb2huQG1haWwuY29tIiwidG9rZW5fdHlwZSI6InJlZnJlc2giLCJleHAiOjE3NTQ0NDQwMDEsImlhdCI6MTc1MzgzOTIwMX0.XI7aKTTSqnccct6PsQtKBP0BNdHZ8x6K7BkABYW92sw
-      maxAge: 604800
-      domain: localhost
-      path: /
-      httpOnly: true
-      hostOnly: true
-      creation: 2025-07-30T00:42:55.772Z
-      lastAccessed: 2025-07-30T01:33:21.726Z
-      id: 5bd557fd-bbcc-429e-86cc-dd6f3ee6534c
-    - key: auth_status
-      value: authenticated
-      maxAge: 900
-      domain: localhost
-      path: /
-      hostOnly: true
-      creation: 2025-07-30T00:42:55.772Z
-      lastAccessed: 2025-07-30T01:33:21.726Z
-      id: e7198a1e-27b7-4920-9fa3-27a185dbe4c6
+    modified: 1754063964458
 environments:
   name: Base Environment
   meta:
