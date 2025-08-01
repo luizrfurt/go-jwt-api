@@ -34,10 +34,6 @@ func main() {
 		utils.SendJSON(c, http.StatusOK, gin.H{"message": "API is running"}, []string{})
 	})
 
-	r.GET("/docs", func(c *gin.Context) {
-		c.File("./tools/docs.html")
-	})
-
 	routes.SetupRoutes(r)
 
 	r.Run(":" + config.AppConfig.Port)
