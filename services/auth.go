@@ -62,15 +62,15 @@ func InitAuthConfig() {
 }
 
 func SetTokenCookies(c *gin.Context, accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time) {
-	c.SetCookie("access_token", accessToken, int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
-	c.SetCookie("refresh_token", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
-	c.SetCookie("auth_status", "authenticated", int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
+	c.SetCookie("session.xaccess", accessToken, int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
+	c.SetCookie("session.xrefresh", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
+	c.SetCookie("session.xstatus", "user_authenticated", int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
 }
 
 func ClearTokenCookies(c *gin.Context) {
-	c.SetCookie("access_token", "", -1, "/", CookieDomain, CookieSecure, true)
-	c.SetCookie("refresh_token", "", -1, "/", CookieDomain, CookieSecure, true)
-	c.SetCookie("auth_status", "", -1, "/", CookieDomain, CookieSecure, false)
+	c.SetCookie("session.xaccess", "", -1, "/", CookieDomain, CookieSecure, true)
+	c.SetCookie("session.xrefresh", "", -1, "/", CookieDomain, CookieSecure, true)
+	c.SetCookie("session.xstatus", "", -1, "/", CookieDomain, CookieSecure, false)
 }
 
 func FindUserById(id uint) (*models.User, error) {
@@ -235,7 +235,7 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrInvalidToken, err)
 	}
 
-	if claims.TokenType != "refresh" {
+	if claims.TokenType != "xrefresh" {
 		return "", "", time.Time{}, time.Time{}, ErrInvalidTokenType
 	}
 
@@ -262,7 +262,7 @@ func ValidateAccessToken(tokenStr string) (*Claims, error) {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidToken, err)
 	}
 
-	if claims.TokenType != "access" {
+	if claims.TokenType != "xaccess" {
 		return nil, ErrInvalidTokenType
 	}
 
@@ -275,7 +275,7 @@ func generateTokenPair(id uint) (accessToken, refreshToken string, expiresIn int
 	accessExpiration = now.Add(15 * time.Minute)
 	accessClaims := &Claims{
 		Id:        id,
-		TokenType: "access",
+		TokenType: "xaccess",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(accessExpiration),
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -291,7 +291,7 @@ func generateTokenPair(id uint) (accessToken, refreshToken string, expiresIn int
 	refreshExpiration = now.Add(7 * 24 * time.Hour)
 	refreshClaims := &Claims{
 		Id:        id,
-		TokenType: "refresh",
+		TokenType: "xrefresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(refreshExpiration),
 			IssuedAt:  jwt.NewNumericDate(now),

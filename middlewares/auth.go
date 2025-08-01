@@ -11,7 +11,7 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := c.Cookie("access_token")
+		tokenStr, err := c.Cookie("session.xaccess")
 		if err != nil || tokenStr == "" {
 			utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
 				"error": "Access token is required",

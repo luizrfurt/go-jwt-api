@@ -55,7 +55,7 @@ func SignIn(c *gin.Context) {
 }
 
 func Refresh(c *gin.Context) {
-	refreshTokenStr, err := c.Cookie("refresh_token")
+	refreshTokenStr, err := c.Cookie("session.xrefresh")
 	if err != nil {
 		exceptions.Error(c, http.StatusBadRequest, "Refresh token not provided")
 		return
