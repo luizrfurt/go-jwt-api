@@ -73,13 +73,13 @@ func Refresh(c *gin.Context) {
 }
 
 func Me(c *gin.Context) {
-	username, exists := c.Get("user")
+	id, exists := c.Get("sub")
 	if !exists {
 		exceptions.Error(c, http.StatusInternalServerError, "User not found in context")
 		return
 	}
 
-	user, err := services.GetUserByUsername(username.(string))
+	user, err := services.FindUserById(id.(uint))
 	if err != nil {
 		customMappings := map[error]exceptions.ErrorMapping{
 			services.ErrUserNotFound: {
@@ -119,7 +119,7 @@ func UpdateMe(c *gin.Context) {
 		return
 	}
 
-	userId, exists := c.Get("id")
+	userId, exists := c.Get("sub")
 	if !exists {
 		exceptions.Error(c, http.StatusInternalServerError, "User Id not found in context")
 		return
