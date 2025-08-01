@@ -52,5 +52,3 @@ echo.
 if !contador! equ 0 (
     echo AVISO: Nenhum arquivo .go foi encontrado no diretório especificado.
 )
-
-pause
