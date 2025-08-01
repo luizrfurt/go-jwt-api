@@ -21,10 +21,12 @@ func RegisterAuthRoutes(r *gin.Engine) {
 		authGroup.POST("/reset-password/change-password/:token", handlers.ResetPasswordChangePassword)
 
 		protected := authGroup.Group("/")
-		protected.Use(middlewares.AuthMiddleware())
+		protected.Use(middlewares.AuthMiddleware(), middlewares.CSRFMiddleware())
 		{
 			protected.GET("/me", handlers.Me)
 			protected.PUT("/me", handlers.UpdateMe)
 		}
+
+		authGroup.GET("/csrf-token", handlers.GetCsrfToken)
 	}
 }

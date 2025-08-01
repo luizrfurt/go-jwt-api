@@ -8,6 +8,7 @@ import (
 	"go-jwt-api/utils"
 	"go-jwt-api/validators"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +51,7 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
+	services.SetJwtTokensCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign in successful"}, []string{})
 }
 
@@ -63,12 +64,12 @@ func Refresh(c *gin.Context) {
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.RefreshPair(refreshTokenStr)
 	if err != nil {
-		services.ClearTokenCookies(c)
+		services.ClearTokensCookies(c)
 		exceptions.AuthError(c, err)
 		return
 	}
 
-	services.SetTokenCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
+	services.SetJwtTokensCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Refreshed successfully"}, []string{})
 }
 
@@ -164,7 +165,7 @@ func UpdateMe(c *gin.Context) {
 }
 
 func SignOut(c *gin.Context) {
-	services.ClearTokenCookies(c)
+	services.ClearTokensCookies(c)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign out successful"}, []string{})
 }
 
@@ -270,4 +271,17 @@ func ResetPasswordChangePassword(c *gin.Context) {
 	}
 
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Password changed successfully"}, []string{})
+}
+
+func GetCsrfToken(c *gin.Context) {
+	csrfToken, err := services.GenerateCsrfToken()
+	if err != nil {
+		exceptions.AuthError(c, err)
+		return
+	}
+
+	csrfExpiration := time.Now().Add(15 * time.Minute) // same time of access token!!
+
+	services.SetCsrfCookie(c, csrfToken, csrfExpiration)
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "CSRF token generated successful"}, []string{})
 }

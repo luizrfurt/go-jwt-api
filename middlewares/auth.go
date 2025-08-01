@@ -25,7 +25,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			switch err.Error() {
 			case "invalid token":
 				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
-					"error": "The provided token is invalid or expired",
+					"error": "The provided access token is invalid or expired",
 				}, []string{})
 			case "invalid token type":
 				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{

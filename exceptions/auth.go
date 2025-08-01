@@ -55,7 +55,11 @@ var authErrorMap = map[error]ErrorMapping{
 	},
 	services.ErrGenerateTokens: {
 		StatusCode: http.StatusInternalServerError,
-		Message:    "Could not generate tokens",
+		Message:    "Could not generate jwt tokens",
+	},
+	services.ErrGenerateTokens: {
+		StatusCode: http.StatusInternalServerError,
+		Message:    "Could not generate csrf token",
 	},
 	services.ErrDatabaseError: {
 		StatusCode: http.StatusInternalServerError,

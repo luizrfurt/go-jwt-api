@@ -61,16 +61,21 @@ func InitAuthConfig() {
 	}
 }
 
-func SetTokenCookies(c *gin.Context, accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time) {
+func SetJwtTokensCookies(c *gin.Context, accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time) {
 	c.SetCookie("session.xaccess", accessToken, int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("session.xrefresh", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("session.xstatus", "user_authenticated", int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
 }
 
-func ClearTokenCookies(c *gin.Context) {
+func SetCsrfCookie(c *gin.Context, csrfToken string, csrfExpiration time.Time) {
+	c.SetCookie("session.xcsrf", csrfToken, int(time.Until(csrfExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
+}
+
+func ClearTokensCookies(c *gin.Context) {
 	c.SetCookie("session.xaccess", "", -1, "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("session.xrefresh", "", -1, "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("session.xstatus", "", -1, "/", CookieDomain, CookieSecure, false)
+	c.SetCookie("session.xcsrf", "", -1, "/", CookieDomain, CookieSecure, false)
 }
 
 func FindUserById(id uint) (*models.User, error) {
@@ -396,4 +401,12 @@ func ChangePasswordWithToken(token, newPassword string) error {
 	}
 
 	return nil
+}
+
+func GenerateCsrfToken() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }
