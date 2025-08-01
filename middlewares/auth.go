@@ -1,3 +1,4 @@
+// src/middlewares/auth.go
 package middlewares
 
 import (
