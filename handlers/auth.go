@@ -1,14 +1,14 @@
-// handlers/auth.go
 package handlers
 
 import (
 	"fmt"
-	"go-jwt-api/exceptions"
 	"go-jwt-api/services"
 	"go-jwt-api/utils"
 	"go-jwt-api/validators"
 	"net/http"
 	"time"
+
+	"errors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,17 +16,18 @@ import (
 func SignUp(c *gin.Context) {
 	var req validators.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid signup request")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid signup request"}, []string{})
 		return
 	}
 
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
-		exceptions.ValidationError(c, validationErrors)
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
 		return
 	}
 
 	if err := services.RegisterUser(req); err != nil {
-		exceptions.AuthError(c, err)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -36,18 +37,19 @@ func SignUp(c *gin.Context) {
 func SignIn(c *gin.Context) {
 	var req validators.SignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid signin request")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid signin request"}, []string{})
 		return
 	}
 
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
-		exceptions.ValidationError(c, validationErrors)
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
 		return
 	}
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
-		exceptions.AuthError(c, err)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -58,14 +60,15 @@ func SignIn(c *gin.Context) {
 func Refresh(c *gin.Context) {
 	refreshTokenStr, err := c.Cookie("session.xrefresh")
 	if err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Refresh token not provided")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Refresh token not provided"}, []string{})
 		return
 	}
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.RefreshPair(refreshTokenStr)
 	if err != nil {
 		services.ClearTokensCookies(c)
-		exceptions.AuthError(c, err)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -76,19 +79,14 @@ func Refresh(c *gin.Context) {
 func Me(c *gin.Context) {
 	id, exists := c.Get("sub")
 	if !exists {
-		exceptions.Error(c, http.StatusInternalServerError, "User not found in context")
+		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
 	user, err := services.FindUserById(id.(uint))
 	if err != nil {
-		customMappings := map[error]exceptions.ErrorMapping{
-			services.ErrUserNotFound: {
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			},
-		}
-		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -112,37 +110,24 @@ func Me(c *gin.Context) {
 func UpdateMe(c *gin.Context) {
 	var req validators.UpdateMeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid me-edit request")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid me-edit request"}, []string{})
 		return
 	}
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
-		exceptions.ValidationError(c, validationErrors)
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
 		return
 	}
 
 	userId, exists := c.Get("sub")
 	if !exists {
-		exceptions.Error(c, http.StatusInternalServerError, "User Id not found in context")
+		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User Id not found in context"}, []string{})
 		return
 	}
 
 	updatedUser, err := services.UpdateUser(userId.(uint), req)
 	if err != nil {
-		customMappings := map[error]exceptions.ErrorMapping{
-			services.ErrUserNotFound: {
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			},
-			services.ErrUsernameExists: {
-				StatusCode: http.StatusConflict,
-				Message:    "Username is already in use by another user",
-			},
-			services.ErrEmailExists: {
-				StatusCode: http.StatusConflict,
-				Message:    "Email is already in use by another user",
-			},
-		}
-		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -172,35 +157,31 @@ func SignOut(c *gin.Context) {
 func ForgotPassword(c *gin.Context) {
 	var req validators.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid forgot-password request")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid forgot-password request"}, []string{})
 		return
 	}
 
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
-		exceptions.ValidationError(c, validationErrors)
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
 		return
 	}
 
 	user, err := services.FindUserByEmail(req.Email)
 	if err != nil {
-		customMappings := map[error]exceptions.ErrorMapping{
-			services.ErrUserNotFound: {
-				StatusCode: http.StatusNotFound,
-				Message:    "User with this email was not found",
-			},
-		}
-		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
 	token, err := services.SetForgotPasswordToken(user)
 	if err != nil {
-		exceptions.AuthError(c, err)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
 	if err := services.SendPasswordRecoveryEmail(user, token); err != nil {
-		exceptions.Error(c, http.StatusInternalServerError, "Failed to send recovery email")
+		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Failed to send recovery email"}, []string{})
 		return
 	}
 
@@ -212,18 +193,19 @@ func ForgotPassword(c *gin.Context) {
 func ResetPasswordValidToken(c *gin.Context) {
 	token := c.Param("token")
 	if token == "" {
-		exceptions.Error(c, http.StatusBadRequest, "Token is required")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
 		return
 	}
 
 	isValid, err := services.IsResetPasswordTokenValid(token)
 	if err != nil {
-		exceptions.AuthError(c, err)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
 	if !isValid {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid or expired token")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid or expired token"}, []string{})
 		return
 	}
 
@@ -233,40 +215,36 @@ func ResetPasswordValidToken(c *gin.Context) {
 func ResetPasswordChangePassword(c *gin.Context) {
 	token := c.Param("token")
 	if token == "" {
-		exceptions.Error(c, http.StatusBadRequest, "Token is required")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
 		return
 	}
 
 	isValid, err := services.IsResetPasswordTokenValid(token)
 	if err != nil {
-		exceptions.AuthError(c, err)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
 	if !isValid {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid or expired token")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid or expired token"}, []string{})
 		return
 	}
 
 	var req validators.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		exceptions.Error(c, http.StatusBadRequest, "Invalid reset-password request")
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid reset-password request"}, []string{})
 		return
 	}
 
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
-		exceptions.ValidationError(c, validationErrors)
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
 		return
 	}
 
 	if err := services.ChangePasswordWithToken(token, req.NewPassword); err != nil {
-		customMappings := map[error]exceptions.ErrorMapping{
-			services.ErrInvalidResetToken: {
-				StatusCode: http.StatusBadRequest,
-				Message:    "Invalid or expired reset token",
-			},
-		}
-		exceptions.AuthErrorWithCustomStatus(c, err, customMappings)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -276,12 +254,41 @@ func ResetPasswordChangePassword(c *gin.Context) {
 func GetCsrfToken(c *gin.Context) {
 	csrfToken, err := services.GenerateCsrfToken()
 	if err != nil {
-		exceptions.AuthError(c, err)
+		status, message := mapAuthError(err)
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
-	csrfExpiration := time.Now().Add(15 * time.Minute) // same time of access token!!
-
+	csrfExpiration := time.Now().Add(15 * time.Minute)
 	services.SetCsrfCookie(c, csrfToken, csrfExpiration)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "CSRF token generated successful"}, []string{})
+}
+
+func mapAuthError(err error) (int, string) {
+	switch {
+	case errors.Is(err, services.ErrUsernameExists):
+		return http.StatusBadRequest, "Username already exists"
+	case errors.Is(err, services.ErrEmailExists):
+		return http.StatusBadRequest, "Email already exists"
+	case errors.Is(err, services.ErrUserNotFound):
+		return http.StatusNotFound, "User not found"
+	case errors.Is(err, services.ErrIncorrectPassword):
+		return http.StatusUnauthorized, "Incorrect password"
+	case errors.Is(err, services.ErrInvalidToken):
+		return http.StatusUnauthorized, "Invalid token"
+	case errors.Is(err, services.ErrInvalidTokenType):
+		return http.StatusUnauthorized, "Invalid token type"
+	case errors.Is(err, services.ErrHashPassword):
+		return http.StatusInternalServerError, "Could not hash password"
+	case errors.Is(err, services.ErrCreateUser):
+		return http.StatusInternalServerError, "Failed to create user"
+	case errors.Is(err, services.ErrGenerateTokens):
+		return http.StatusInternalServerError, "Could not generate token"
+	case errors.Is(err, services.ErrDatabaseError):
+		return http.StatusInternalServerError, "Database error"
+	case errors.Is(err, services.ErrInvalidResetToken):
+		return http.StatusBadRequest, "Invalid or expired reset token"
+	default:
+		return http.StatusInternalServerError, "Internal server error"
+	}
 }
