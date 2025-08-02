@@ -12,7 +12,7 @@ import (
 
 func CSRFMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if config.AppConfig.Environment == "development" {
+		if config.AppConfig.Environment != "production" {
 			c.Next()
 			return
 		}
