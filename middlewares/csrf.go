@@ -4,6 +4,7 @@ package middlewares
 import (
 	"net/http"
 
+	"go-jwt-api/config"
 	"go-jwt-api/utils"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,11 @@ import (
 
 func CSRFMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if config.AppConfig.Environment == "development" {
+			c.Next()
+			return
+		}
+
 		method := c.Request.Method
 		if method == http.MethodGet || method == http.MethodHead || method == http.MethodOptions {
 			c.Next()
