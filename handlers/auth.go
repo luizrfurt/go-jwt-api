@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"errors"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +24,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	if err := services.RegisterUser(req); err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -48,7 +46,7 @@ func SignIn(c *gin.Context) {
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.AuthenticateUser(req.Username, req.Password)
 	if err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -67,7 +65,7 @@ func Refresh(c *gin.Context) {
 	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.RefreshPair(refreshTokenStr)
 	if err != nil {
 		services.ClearTokensCookies(c)
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -85,7 +83,7 @@ func Me(c *gin.Context) {
 
 	user, err := services.FindUserById(id.(uint))
 	if err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -126,7 +124,7 @@ func UpdateMe(c *gin.Context) {
 
 	updatedUser, err := services.UpdateUser(userId.(uint), req)
 	if err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -168,14 +166,14 @@ func ForgotPassword(c *gin.Context) {
 
 	user, err := services.FindUserByEmail(req.Email)
 	if err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
 	token, err := services.SetForgotPasswordToken(user)
 	if err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -199,7 +197,7 @@ func ResetPasswordValidToken(c *gin.Context) {
 
 	isValid, err := services.IsResetPasswordTokenValid(token)
 	if err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -221,7 +219,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 
 	isValid, err := services.IsResetPasswordTokenValid(token)
 	if err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -243,7 +241,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 	}
 
 	if err := services.ChangePasswordWithToken(token, req.NewPassword); err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -254,7 +252,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 func GetCsrfToken(c *gin.Context) {
 	csrfToken, err := services.GenerateCsrfToken()
 	if err != nil {
-		status, message := mapAuthError(err)
+		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -262,33 +260,4 @@ func GetCsrfToken(c *gin.Context) {
 	csrfExpiration := time.Now().Add(15 * time.Minute)
 	services.SetCsrfCookie(c, csrfToken, csrfExpiration)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "CSRF token generated successful"}, []string{})
-}
-
-func mapAuthError(err error) (int, string) {
-	switch {
-	case errors.Is(err, services.ErrUsernameExists):
-		return http.StatusBadRequest, "Username already exists"
-	case errors.Is(err, services.ErrEmailExists):
-		return http.StatusBadRequest, "Email already exists"
-	case errors.Is(err, services.ErrUserNotFound):
-		return http.StatusNotFound, "User not found"
-	case errors.Is(err, services.ErrIncorrectPassword):
-		return http.StatusUnauthorized, "Incorrect password"
-	case errors.Is(err, services.ErrInvalidToken):
-		return http.StatusUnauthorized, "Invalid token"
-	case errors.Is(err, services.ErrInvalidTokenType):
-		return http.StatusUnauthorized, "Invalid token type"
-	case errors.Is(err, services.ErrHashPassword):
-		return http.StatusInternalServerError, "Could not hash password"
-	case errors.Is(err, services.ErrCreateUser):
-		return http.StatusInternalServerError, "Failed to create user"
-	case errors.Is(err, services.ErrGenerateTokens):
-		return http.StatusInternalServerError, "Could not generate token"
-	case errors.Is(err, services.ErrDatabaseError):
-		return http.StatusInternalServerError, "Database error"
-	case errors.Is(err, services.ErrInvalidResetToken):
-		return http.StatusBadRequest, "Invalid or expired reset token"
-	default:
-		return http.StatusInternalServerError, "Internal server error"
-	}
 }

@@ -61,6 +61,35 @@ func InitAuthConfig() {
 	}
 }
 
+func MapAuthError(err error) (int, string) {
+	switch {
+	case errors.Is(err, ErrUsernameExists):
+		return http.StatusBadRequest, "Username already exists"
+	case errors.Is(err, ErrEmailExists):
+		return http.StatusBadRequest, "Email already exists"
+	case errors.Is(err, ErrUserNotFound):
+		return http.StatusNotFound, "User not found"
+	case errors.Is(err, ErrIncorrectPassword):
+		return http.StatusUnauthorized, "Incorrect password"
+	case errors.Is(err, ErrInvalidToken):
+		return http.StatusUnauthorized, "Invalid token"
+	case errors.Is(err, ErrInvalidTokenType):
+		return http.StatusUnauthorized, "Invalid token type"
+	case errors.Is(err, ErrHashPassword):
+		return http.StatusInternalServerError, "Could not hash password"
+	case errors.Is(err, ErrCreateUser):
+		return http.StatusInternalServerError, "Failed to create user"
+	case errors.Is(err, ErrGenerateTokens):
+		return http.StatusInternalServerError, "Could not generate token"
+	case errors.Is(err, ErrDatabaseError):
+		return http.StatusInternalServerError, "Database error"
+	case errors.Is(err, ErrInvalidResetToken):
+		return http.StatusBadRequest, "Invalid or expired reset token"
+	default:
+		return http.StatusInternalServerError, "Internal server error"
+	}
+}
+
 func SetJwtTokensCookies(c *gin.Context, accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time) {
 	c.SetCookie("session.xaccess", accessToken, int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("session.xrefresh", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
