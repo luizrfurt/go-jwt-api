@@ -4,6 +4,7 @@ package main
 import (
 	"go-jwt-api/config"
 	"go-jwt-api/db"
+	"go-jwt-api/middlewares"
 	"go-jwt-api/routes"
 	"go-jwt-api/services"
 	"go-jwt-api/utils"
@@ -21,6 +22,8 @@ func main() {
 	r := gin.Default()
 
 	portWeb := config.AppConfig.PortWeb
+
+	r.Use(middlewares.SecurityHeaders())
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:" + portWeb},
