@@ -1,3 +1,4 @@
+// handlers/auth.go
 package handlers
 
 import (
@@ -23,8 +24,7 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	if err := services.RegisterUser(req); err != nil {
-		status, message := services.MapAuthError(err)
+	if status, message, _ := services.RegisterUser(req); status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -44,9 +44,8 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.AuthenticateUser(req.Username, req.Password)
-	if err != nil {
-		status, message := services.MapAuthError(err)
+	accessToken, refreshToken, accessExpiration, refreshExpiration, status, message, _ := services.AuthenticateUser(req.Username, req.Password)
+	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -62,10 +61,9 @@ func Refresh(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, accessExpiration, refreshExpiration, err := services.RefreshPair(refreshTokenStr)
-	if err != nil {
+	accessToken, refreshToken, accessExpiration, refreshExpiration, status, message, err := services.RefreshPair(refreshTokenStr)
+	if status != 0 {
 		services.ClearTokensCookies(c)
-		status, message := services.MapAuthError(err)
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -81,9 +79,8 @@ func Me(c *gin.Context) {
 		return
 	}
 
-	user, err := services.FindUserById(id.(uint))
-	if err != nil {
-		status, message := services.MapAuthError(err)
+	user, status, message, _ := services.FindUserById(id.(uint))
+	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -122,9 +119,8 @@ func UpdateMe(c *gin.Context) {
 		return
 	}
 
-	updatedUser, err := services.UpdateUser(userId.(uint), req)
-	if err != nil {
-		status, message := services.MapAuthError(err)
+	updatedUser, status, message, _ := services.UpdateUser(userId.(uint), req)
+	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -164,16 +160,14 @@ func ForgotPassword(c *gin.Context) {
 		return
 	}
 
-	user, err := services.FindUserByEmail(req.Email)
-	if err != nil {
-		status, message := services.MapAuthError(err)
+	user, status, message, _ := services.FindUserByEmail(req.Email)
+	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
-	token, err := services.SetForgotPasswordToken(user)
-	if err != nil {
-		status, message := services.MapAuthError(err)
+	token, status, message, _ := services.SetForgotPasswordToken(user)
+	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -195,9 +189,8 @@ func ResetPasswordValidToken(c *gin.Context) {
 		return
 	}
 
-	isValid, err := services.IsResetPasswordTokenValid(token)
-	if err != nil {
-		status, message := services.MapAuthError(err)
+	isValid, status, message, _ := services.IsResetPasswordTokenValid(token)
+	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -217,9 +210,8 @@ func ResetPasswordChangePassword(c *gin.Context) {
 		return
 	}
 
-	isValid, err := services.IsResetPasswordTokenValid(token)
-	if err != nil {
-		status, message := services.MapAuthError(err)
+	isValid, status, message, _ := services.IsResetPasswordTokenValid(token)
+	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -240,8 +232,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 		return
 	}
 
-	if err := services.ChangePasswordWithToken(token, req.NewPassword); err != nil {
-		status, message := services.MapAuthError(err)
+	if status, message, _ := services.ChangePasswordWithToken(token, req.NewPassword); status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -250,9 +241,8 @@ func ResetPasswordChangePassword(c *gin.Context) {
 }
 
 func GetCsrfToken(c *gin.Context) {
-	csrfToken, err := services.GenerateCsrfToken()
-	if err != nil {
-		status, message := services.MapAuthError(err)
+	csrfToken, status, message, _ := services.GenerateCsrfToken()
+	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}

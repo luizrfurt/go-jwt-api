@@ -20,22 +20,11 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := services.ValidateAccessToken(tokenStr)
-		if err != nil {
-			switch err.Error() {
-			case "invalid token":
-				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
-					"error": "The provided access token is invalid or expired",
-				}, []string{})
-			case "invalid token type":
-				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
-					"error": "Invalid token type provided. Access token is required",
-				}, []string{})
-			default:
-				utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
-					"error": "Authentication failed. Please provide a valid access token",
-				}, []string{})
-			}
+		claims, status, message, _ := services.ValidateAccessToken(tokenStr)
+		if status != 0 {
+			utils.SendJSONError(c, status, gin.H{
+				"error": message,
+			}, []string{})
 			c.Abort()
 			return
 		}

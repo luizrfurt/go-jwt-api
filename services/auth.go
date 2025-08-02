@@ -27,20 +27,6 @@ var (
 	CookieSameSite http.SameSite
 )
 
-var (
-	ErrUsernameExists    = errors.New("username already exists")
-	ErrEmailExists       = errors.New("email already exists")
-	ErrUserNotFound      = errors.New("user not found")
-	ErrDatabaseError     = errors.New("database error")
-	ErrHashPassword      = errors.New("could not hash password")
-	ErrCreateUser        = errors.New("failed to create user")
-	ErrIncorrectPassword = errors.New("incorrect password")
-	ErrGenerateTokens    = errors.New("could not generate tokens")
-	ErrInvalidToken      = errors.New("invalid token")
-	ErrInvalidTokenType  = errors.New("invalid token type")
-	ErrInvalidResetToken = errors.New("invalid or expired reset token")
-)
-
 type Claims struct {
 	Id        uint   `json:"id"`
 	TokenType string `json:"token_type"`
@@ -61,35 +47,6 @@ func InitAuthConfig() {
 	}
 }
 
-func MapAuthError(err error) (int, string) {
-	switch {
-	case errors.Is(err, ErrUsernameExists):
-		return http.StatusBadRequest, "Username already exists"
-	case errors.Is(err, ErrEmailExists):
-		return http.StatusBadRequest, "Email already exists"
-	case errors.Is(err, ErrUserNotFound):
-		return http.StatusNotFound, "User not found"
-	case errors.Is(err, ErrIncorrectPassword):
-		return http.StatusUnauthorized, "Incorrect password"
-	case errors.Is(err, ErrInvalidToken):
-		return http.StatusUnauthorized, "Invalid token"
-	case errors.Is(err, ErrInvalidTokenType):
-		return http.StatusUnauthorized, "Invalid token type"
-	case errors.Is(err, ErrHashPassword):
-		return http.StatusInternalServerError, "Could not hash password"
-	case errors.Is(err, ErrCreateUser):
-		return http.StatusInternalServerError, "Failed to create user"
-	case errors.Is(err, ErrGenerateTokens):
-		return http.StatusInternalServerError, "Could not generate token"
-	case errors.Is(err, ErrDatabaseError):
-		return http.StatusInternalServerError, "Database error"
-	case errors.Is(err, ErrInvalidResetToken):
-		return http.StatusBadRequest, "Invalid or expired reset token"
-	default:
-		return http.StatusInternalServerError, "Internal server error"
-	}
-}
-
 func SetJwtTokensCookies(c *gin.Context, accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time) {
 	c.SetCookie("session.xaccess", accessToken, int(time.Until(accessExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("session.xrefresh", refreshToken, int(time.Until(refreshExpiration).Seconds()), "/", CookieDomain, CookieSecure, true)
@@ -107,58 +64,58 @@ func ClearTokensCookies(c *gin.Context) {
 	c.SetCookie("session.xcsrf", "", -1, "/", CookieDomain, CookieSecure, false)
 }
 
-func FindUserById(id uint) (*models.User, error) {
+func FindUserById(id uint) (*models.User, int, string, error) {
 	var user models.User
 	err := db.DB.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrUserNotFound
+			return nil, http.StatusNotFound, "User not found", nil
 		}
-		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+		return nil, http.StatusInternalServerError, "Database error", err
 	}
-	return &user, nil
+	return &user, 0, "", nil
 }
 
-func findUserByUsername(username string) (*models.User, error) {
+func findUserByUsername(username string) (*models.User, int, string, error) {
 	var user models.User
 	err := db.DB.Where("username = ?", username).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrUserNotFound
+			return nil, http.StatusNotFound, "User not found", nil
 		}
-		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+		return nil, http.StatusInternalServerError, "Database error", err
 	}
-	return &user, nil
+	return &user, 0, "", nil
 }
 
-func FindUserByEmail(email string) (*models.User, error) {
+func FindUserByEmail(email string) (*models.User, int, string, error) {
 	var user models.User
 	err := db.DB.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrUserNotFound
+			return nil, http.StatusNotFound, "User not found", nil
 		}
-		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+		return nil, http.StatusInternalServerError, "Database error", err
 	}
-	return &user, nil
+	return &user, 0, "", nil
 }
 
-func findUserByForgotPasswordToken(token string) (*models.User, error) {
+func findUserByForgotPasswordToken(token string) (*models.User, int, string, error) {
 	var user models.User
 	err := db.DB.Where("forgot_password_token = ?", token).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrUserNotFound
+			return nil, http.StatusNotFound, "User not found", nil
 		}
-		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+		return nil, http.StatusInternalServerError, "Database error", err
 	}
-	return &user, nil
+	return &user, 0, "", nil
 }
 
-func createUser(req validators.SignUpRequest) error {
+func createUser(req validators.SignUpRequest) (int, string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrHashPassword, err)
+		return http.StatusInternalServerError, "Could not hash password", err
 	}
 
 	user := models.User{
@@ -170,55 +127,55 @@ func createUser(req validators.SignUpRequest) error {
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {
-		return fmt.Errorf("%w: %v", ErrCreateUser, err)
+		return http.StatusInternalServerError, "Failed to create user", err
 	}
 
-	return nil
+	return 0, "", nil
 }
 
-func RegisterUser(req validators.SignUpRequest) error {
-	_, err := findUserByUsername(req.Username)
-	if err != nil && !errors.Is(err, ErrUserNotFound) {
-		return err
+func RegisterUser(req validators.SignUpRequest) (int, string, error) {
+	_, status, message, err := findUserByUsername(req.Username)
+	if err != nil && status != http.StatusNotFound {
+		return status, message, err
 	}
-	if err == nil {
-		return ErrUsernameExists
+	if status == 0 {
+		return http.StatusBadRequest, "Username already exists", nil
 	}
 
-	_, err = FindUserByEmail(req.Email)
-	if err != nil && !errors.Is(err, ErrUserNotFound) {
-		return err
+	_, status, message, err = FindUserByEmail(req.Email)
+	if err != nil && status != http.StatusNotFound {
+		return status, message, err
 	}
-	if err == nil {
-		return ErrEmailExists
+	if status == 0 {
+		return http.StatusBadRequest, "Email already exists", nil
 	}
 
 	return createUser(req)
 }
 
-func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, error) {
-	user, err := FindUserById(userId)
-	if err != nil {
-		return nil, err
+func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int, string, error) {
+	user, status, message, err := FindUserById(userId)
+	if status != 0 {
+		return nil, status, message, err
 	}
 
 	if req.Username != user.Username {
-		_, err := findUserByUsername(req.Username)
-		if err != nil && !errors.Is(err, ErrUserNotFound) {
-			return nil, err
+		_, status, message, err := findUserByUsername(req.Username)
+		if err != nil && status != http.StatusNotFound {
+			return nil, status, message, err
 		}
-		if err == nil {
-			return nil, ErrUsernameExists
+		if status == 0 {
+			return nil, http.StatusBadRequest, "Username already exists", nil
 		}
 	}
 
 	if req.Email != user.Email {
-		_, err := FindUserByEmail(req.Email)
-		if err != nil && !errors.Is(err, ErrUserNotFound) {
-			return nil, err
+		_, status, message, err := FindUserByEmail(req.Email)
+		if err != nil && status != http.StatusNotFound {
+			return nil, status, message, err
 		}
-		if err == nil {
-			return nil, ErrEmailExists
+		if status == 0 {
+			return nil, http.StatusBadRequest, "Email already exists", nil
 		}
 	}
 
@@ -229,78 +186,78 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, erro
 	if req.NewPassword != nil && *req.NewPassword != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.NewPassword), bcrypt.DefaultCost)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrHashPassword, err)
+			return nil, http.StatusInternalServerError, "Could not hash password", err
 		}
 		user.Password = string(hashedPassword)
 	}
 
 	if err := db.DB.Save(user).Error; err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+		return nil, http.StatusInternalServerError, "Database error", err
 	}
 
-	return user, nil
+	return user, 0, "", nil
 }
 
-func AuthenticateUser(username, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, err error) {
-	user, err := findUserByUsername(username)
-	if err != nil {
-		return "", "", time.Time{}, time.Time{}, err
+func AuthenticateUser(username, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, status int, message string, err error) {
+	user, status, message, err := findUserByUsername(username)
+	if status != 0 {
+		return "", "", time.Time{}, time.Time{}, status, message, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", "", time.Time{}, time.Time{}, ErrIncorrectPassword
+		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Incorrect password", nil
 	}
 
 	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrGenerateTokens, err)
+		return "", "", time.Time{}, time.Time{}, http.StatusInternalServerError, "Could not generate tokens", err
 	}
 
-	return accessToken, refreshToken, accessExpiration, refreshExpiration, nil
+	return accessToken, refreshToken, accessExpiration, refreshExpiration, 0, "", nil
 }
 
-func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, err error) {
+func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, status int, message string, err error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(refreshTokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return JwtKey, nil
 	})
 
 	if err != nil || !token.Valid {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrInvalidToken, err)
+		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Invalid token", nil
 	}
 
 	if claims.TokenType != "xrefresh" {
-		return "", "", time.Time{}, time.Time{}, ErrInvalidTokenType
+		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Invalid token type", nil
 	}
 
-	user, err := FindUserById(claims.Id)
-	if err != nil {
-		return "", "", time.Time{}, time.Time{}, err
+	user, status, message, err := FindUserById(claims.Id)
+	if status != 0 {
+		return "", "", time.Time{}, time.Time{}, status, message, err
 	}
 
 	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id)
 	if err != nil {
-		return "", "", time.Time{}, time.Time{}, fmt.Errorf("%w: %v", ErrGenerateTokens, err)
+		return "", "", time.Time{}, time.Time{}, http.StatusInternalServerError, "Could not generate tokens", err
 	}
 
-	return accessToken, refreshToken, accessExpiration, refreshExpiration, nil
+	return accessToken, refreshToken, accessExpiration, refreshExpiration, 0, "", nil
 }
 
-func ValidateAccessToken(tokenStr string) (*Claims, error) {
+func ValidateAccessToken(tokenStr string) (*Claims, int, string, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return JwtKey, nil
 	})
 
 	if err != nil || !token.Valid {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidToken, err)
+		return nil, http.StatusUnauthorized, "Invalid token", nil
 	}
 
 	if claims.TokenType != "xaccess" {
-		return nil, ErrInvalidTokenType
+		return nil, http.StatusUnauthorized, "Invalid token type", nil
 	}
 
-	return claims, nil
+	return claims, 0, "", nil
 }
 
 func generateTokenPair(id uint) (accessToken, refreshToken string, expiresIn int64, accessExpiration, refreshExpiration time.Time, err error) {
@@ -350,18 +307,18 @@ func generateForgotPasswordToken() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-func SetForgotPasswordToken(user *models.User) (string, error) {
+func SetForgotPasswordToken(user *models.User) (string, int, string, error) {
 	token, err := generateForgotPasswordToken()
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrGenerateTokens, err)
+		return "", http.StatusInternalServerError, "Could not generate token", err
 	}
 
 	user.ForgotPasswordToken = token
 	if err := db.DB.Save(user).Error; err != nil {
-		return "", fmt.Errorf("%w: %v", ErrDatabaseError, err)
+		return "", http.StatusInternalServerError, "Database error", err
 	}
 
-	return token, nil
+	return token, 0, "", nil
 }
 
 func SendPasswordRecoveryEmail(user *models.User, token string) error {
@@ -396,46 +353,46 @@ func SendPasswordRecoveryEmail(user *models.User, token string) error {
 	return nil
 }
 
-func IsResetPasswordTokenValid(token string) (bool, error) {
-	_, err := findUserByForgotPasswordToken(token)
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
-			return false, nil
-		}
-		return false, fmt.Errorf("%w: %v", ErrDatabaseError, err)
+func IsResetPasswordTokenValid(token string) (bool, int, string, error) {
+	_, status, message, err := findUserByForgotPasswordToken(token)
+	if status == http.StatusNotFound {
+		return false, 0, "", nil
+	}
+	if status != 0 {
+		return false, status, message, err
 	}
 
-	return true, nil
+	return true, 0, "", nil
 }
 
-func ChangePasswordWithToken(token, newPassword string) error {
-	user, err := findUserByForgotPasswordToken(token)
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
-			return ErrInvalidResetToken
-		}
-		return fmt.Errorf("%w: %v", ErrDatabaseError, err)
+func ChangePasswordWithToken(token, newPassword string) (int, string, error) {
+	user, status, message, err := findUserByForgotPasswordToken(token)
+	if status == http.StatusNotFound {
+		return http.StatusBadRequest, "Invalid or expired reset token", nil
+	}
+	if status != 0 {
+		return status, message, err
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrHashPassword, err)
+		return http.StatusInternalServerError, "Could not hash password", err
 	}
 
 	user.Password = string(hashedPassword)
 	user.ForgotPasswordToken = ""
 
 	if err := db.DB.Save(user).Error; err != nil {
-		return fmt.Errorf("%w: %v", ErrDatabaseError, err)
+		return http.StatusInternalServerError, "Database error", err
 	}
 
-	return nil
+	return 0, "", nil
 }
 
-func GenerateCsrfToken() (string, error) {
+func GenerateCsrfToken() (string, int, string, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+		return "", http.StatusInternalServerError, "Could not generate CSRF token", err
 	}
-	return hex.EncodeToString(bytes), nil
+	return hex.EncodeToString(bytes), 0, "", nil
 }
