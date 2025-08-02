@@ -54,14 +54,19 @@ func SetJwtTokensCookies(c *gin.Context, accessToken, refreshToken string, acces
 }
 
 func SetCsrfCookie(c *gin.Context, csrfToken string, csrfExpiration time.Time) {
-	c.SetCookie("session.xcsrf", csrfToken, int(time.Until(csrfExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
+	if config.AppConfig.Environment == "production" {
+		c.SetCookie("session.xcsrf", csrfToken, int(time.Until(csrfExpiration).Seconds()), "/", CookieDomain, CookieSecure, false)
+	}
 }
 
 func ClearTokensCookies(c *gin.Context) {
 	c.SetCookie("session.xaccess", "", -1, "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("session.xrefresh", "", -1, "/", CookieDomain, CookieSecure, true)
 	c.SetCookie("session.xstatus", "", -1, "/", CookieDomain, CookieSecure, false)
-	c.SetCookie("session.xcsrf", "", -1, "/", CookieDomain, CookieSecure, false)
+
+	if config.AppConfig.Environment == "production" {
+		c.SetCookie("session.xcsrf", "", -1, "/", CookieDomain, CookieSecure, false)
+	}
 }
 
 func FindUserById(id uint) (*models.User, int, string, error) {
