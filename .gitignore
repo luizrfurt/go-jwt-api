@@ -50,3 +50,5 @@ Thumbs.db
 .env
 .env.local
 *.secret
+ai-learn.bat
+ai-learn.txt
