@@ -222,7 +222,7 @@ func AuthenticateUser(identifier, password string) (accessToken, refreshToken st
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Incorrect password", nil
+		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Invalid credentials", nil
 	}
 
 	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id)
