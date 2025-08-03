@@ -105,18 +105,6 @@ func FindUserByEmail(email string) (*models.User, int, string, error) {
 	return &user, 0, "", nil
 }
 
-func findUserByUsernameOrEmail(identifier string) (*models.User, int, string, error) {
-	var user models.User
-	err := db.DB.Where("username = ? OR email = ?", identifier, identifier).First(&user).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, http.StatusNotFound, "User not found", nil
-		}
-		return nil, http.StatusInternalServerError, "Database error", err
-	}
-	return &user, 0, "", nil
-}
-
 func findUserByForgotPasswordToken(token string) (*models.User, int, string, error) {
 	var user models.User
 	err := db.DB.Where("forgot_password_token = ?", token).First(&user).Error
@@ -159,14 +147,6 @@ func RegisterUser(req validators.SignUpRequest) (int, string, error) {
 		return http.StatusBadRequest, "Username already exists", nil
 	}
 
-	_, status, message, err = FindUserByEmail(req.Email)
-	if err != nil && status != http.StatusNotFound {
-		return status, message, err
-	}
-	if status == 0 {
-		return http.StatusBadRequest, "Email already exists", nil
-	}
-
 	return createUser(req)
 }
 
@@ -183,16 +163,6 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 		}
 		if status == 0 {
 			return nil, http.StatusBadRequest, "Username already exists", nil
-		}
-	}
-
-	if req.Email != user.Email {
-		_, status, message, err := FindUserByEmail(req.Email)
-		if err != nil && status != http.StatusNotFound {
-			return nil, status, message, err
-		}
-		if status == 0 {
-			return nil, http.StatusBadRequest, "Email already exists", nil
 		}
 	}
 
@@ -216,7 +186,7 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 }
 
 func AuthenticateUser(identifier, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, status int, message string, err error) {
-	user, status, message, err := findUserByUsernameOrEmail(identifier)
+	user, status, message, err := findUserByUsername(identifier)
 	if status != 0 {
 		return "", "", time.Time{}, time.Time{}, status, message, err
 	}

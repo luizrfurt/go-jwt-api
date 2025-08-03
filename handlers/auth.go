@@ -44,7 +44,7 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, accessExpiration, refreshExpiration, status, message, _ := services.AuthenticateUser(req.Identifier, req.Password)
+	accessToken, refreshToken, accessExpiration, refreshExpiration, status, message, _ := services.AuthenticateUser(req.Username, req.Password)
 	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
