@@ -47,6 +47,7 @@ Thumbs.db
 .git/
 
 # Personal configuration files
+/docs
 .env
 .env.local
 *.secret
