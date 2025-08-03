@@ -7,7 +7,7 @@ package main
 // @description JWT Authentication API with Gin using cookie-based sessions.
 // @contact.name Admin
 // @contact.email admin@mail.com
-// @host localhost:3308
+// @host localhost
 // @BasePath /
 // @securityDefinitions.apikey CookieAuth
 // @in cookie
