@@ -48,7 +48,7 @@ collection:
         meta:
           id: req_f429d67cd41843b8bffacf3886b28fa6
           created: 1753223473896
-          modified: 1754231063126
+          modified: 1754231119915
           isPrivate: false
           sortKey: -1754065629302
         method: POST
@@ -148,21 +148,14 @@ collection:
             send: true
             store: true
           rebuildPath: true
-  - name: User
-    meta:
-      id: fld_609e9310114648f89582a7d206b8d392
-      created: 1754065572584
-      modified: 1754065572584
-      sortKey: -1754065572585
-    children:
       - url: http://localhost:3308/auth/me
         name: Update user
         meta:
           id: req_64864659b61c4e9aae09baf11f732385
           created: 1753834024545
-          modified: 1754169682628
+          modified: 1754249703348
           isPrivate: false
-          sortKey: -1754065649473
+          sortKey: -1754065629264.5
         method: PUT
         body:
           mimeType: application/json
@@ -178,6 +171,39 @@ collection:
             value: application/json
           - name: User-Agent
             value: insomnia/11.1.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: HealthCheck
+    meta:
+      id: fld_609e9310114648f89582a7d206b8d392
+      created: 1754065572584
+      modified: 1754249710931
+      sortKey: -1754065572585
+    children:
+      - url: http://localhost:3308/
+        name: /
+        meta:
+          id: req_74adbadde9ce434fb435b430912e0342
+          created: 1754249722544
+          modified: 1754249752724
+          isPrivate: false
+          sortKey: -1754249739160
+        method: GET
+        body:
+          mimeType: application/json
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.1.0
+        authentication:
+          type: none
         settings:
           renderRequestBody: true
           encodeUrl: true
