@@ -105,6 +105,18 @@ func FindUserByEmail(email string) (*models.User, int, string, error) {
 	return &user, 0, "", nil
 }
 
+func findUserByUsernameOrEmail(identifier string) (*models.User, int, string, error) {
+	var user models.User
+	err := db.DB.Where("username = ? OR email = ?", identifier, identifier).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, http.StatusNotFound, "User not found", nil
+		}
+		return nil, http.StatusInternalServerError, "Database error", err
+	}
+	return &user, 0, "", nil
+}
+
 func findUserByForgotPasswordToken(token string) (*models.User, int, string, error) {
 	var user models.User
 	err := db.DB.Where("forgot_password_token = ?", token).First(&user).Error
@@ -203,8 +215,8 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 	return user, 0, "", nil
 }
 
-func AuthenticateUser(username, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, status int, message string, err error) {
-	user, status, message, err := findUserByUsername(username)
+func AuthenticateUser(identifier, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, status int, message string, err error) {
+	user, status, message, err := findUserByUsernameOrEmail(identifier)
 	if status != 0 {
 		return "", "", time.Time{}, time.Time{}, status, message, err
 	}

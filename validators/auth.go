@@ -9,8 +9,8 @@ type SignUpRequest struct {
 }
 
 type SignInRequest struct {
-	Username string `json:"username" validate:"required,min=3,max=20"`
-	Password string `json:"password" validate:"required,min=6,max=30"`
+	Identifier string `json:"identifier" validate:"required,min=3,max=50"`
+	Password   string `json:"password" validate:"required,min=6,max=30"`
 }
 
 type ForgotPasswordRequest struct {

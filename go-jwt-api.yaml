@@ -17,7 +17,7 @@ collection:
         meta:
           id: req_a66b97a2d1df48ebb6e2a09b5b8bdcc9
           created: 1753221070639
-          modified: 1754065785175
+          modified: 1754229017502
           isPrivate: false
           sortKey: -1754065629402
         method: POST
@@ -48,7 +48,7 @@ collection:
         meta:
           id: req_f429d67cd41843b8bffacf3886b28fa6
           created: 1753223473896
-          modified: 1754065771515
+          modified: 1754231063126
           isPrivate: false
           sortKey: -1754065629302
         method: POST
@@ -56,7 +56,7 @@ collection:
           mimeType: application/json
           text: |-
             {
-              "username": "john",
+              "identifier": "john",
               "password": "secret123"
             }
         headers:
@@ -191,7 +191,7 @@ cookieJar:
   meta:
     id: jar_7d48949a2c224e3b9418c7713c533c04
     created: 1753221070224
-    modified: 1754170160954
+    modified: 1754231006529
 environments:
   name: Base Environment
   meta:
