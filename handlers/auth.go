@@ -12,16 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SignUp godoc
-// @Summary Register user
-// @Description Create a new user with username, email and password.
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body validators.SignUpRequest true "Signup payload"
-// @Success 201 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Router /auth/signup [post]
 func SignUp(c *gin.Context) {
 	var req validators.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -42,18 +32,6 @@ func SignUp(c *gin.Context) {
 	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "User registered successfully"}, []string{})
 }
 
-// SignIn godoc
-// @Summary Sign in
-// @Description Authenticate a user using username or email and password. Sets JWT cookies.
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body validators.SignInRequest true "Sign in payload"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Router /auth/signin [post]
 func SignIn(c *gin.Context) {
 	var req validators.SignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -76,15 +54,6 @@ func SignIn(c *gin.Context) {
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign in successful"}, []string{})
 }
 
-// Refresh godoc
-// @Summary Refresh tokens
-// @Description Refresh access and refresh tokens using refresh cookie.
-// @Tags Auth
-// @Produce json
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Router /auth/refresh [post]
 func Refresh(c *gin.Context) {
 	refreshTokenStr, err := c.Cookie("session.xrefresh")
 	if err != nil {
@@ -103,15 +72,6 @@ func Refresh(c *gin.Context) {
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Refreshed successfully"}, []string{})
 }
 
-// Me godoc
-// @Summary Get current user
-// @Description Returns the authenticated user's profile.
-// @Tags Auth
-// @Security CookieAuth
-// @Produce json
-// @Success 200 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Router /auth/me [get]
 func Me(c *gin.Context) {
 	id, exists := c.Get("sub")
 	if !exists {
@@ -142,18 +102,6 @@ func Me(c *gin.Context) {
 	}}, []string{})
 }
 
-// UpdateMe godoc
-// @Summary Update current user profile
-// @Description Updates name, username, email and optionally password.
-// @Tags Auth
-// @Security CookieAuth
-// @Accept json
-// @Produce json
-// @Param request body validators.UpdateMeRequest true "Update profile payload"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Router /auth/me [put]
 func UpdateMe(c *gin.Context) {
 	var req validators.UpdateMeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -195,14 +143,6 @@ func UpdateMe(c *gin.Context) {
 	}, []string{})
 }
 
-// SignOut godoc
-// @Summary Sign out
-// @Description Clears authentication cookies.
-// @Tags Auth
-// @Security CookieAuth
-// @Produce json
-// @Success 200 {object} map[string]interface{}
-// @Router /auth/signout [delete]
 func SignOut(c *gin.Context) {
 	services.ClearTokensCookies(c)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign out successful"}, []string{})
