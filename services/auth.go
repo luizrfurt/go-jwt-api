@@ -272,18 +272,41 @@ func generateTokenPair(id uint) (accessToken, refreshToken string, expiresIn int
 	return accessToken, refreshToken, expiresIn, accessExpiration, refreshExpiration, nil
 }
 
-func generateForgotPasswordToken() (string, error) {
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+func generateUniqueToken(field string, maxAttempts int) (string, error) {
+	allowed := map[string]struct{}{
+		"forgot_password_token":    {},
+		"email_verification_token": {},
 	}
-	return hex.EncodeToString(bytes), nil
+
+	if _, ok := allowed[field]; !ok {
+		return "", fmt.Errorf("Unsupported field for uniqueness check: %s", field)
+	}
+
+	for range maxAttempts {
+		bytes := make([]byte, 32)
+		if _, err := rand.Read(bytes); err != nil {
+			return "", err
+		}
+		token := hex.EncodeToString(bytes)
+
+		var existing models.User
+		condition := fmt.Sprintf("%s = ?", field)
+		err := db.DB.Where(condition, token).First(&existing).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return token, nil
+			}
+			return "", err
+		}
+	}
+
+	return "", fmt.Errorf("Could not generate unique token for field %s after %d attempts", field, maxAttempts)
 }
 
 func SetForgotPasswordToken(user *models.User) (string, int, string, error) {
-	token, err := generateForgotPasswordToken()
+	token, err := generateUniqueToken("forgot_password_token", 5)
 	if err != nil {
-		return "", http.StatusInternalServerError, "Could not generate token", err
+		return "", http.StatusInternalServerError, "Could not generate unique token", err
 	}
 
 	user.ForgotPasswordToken = token
