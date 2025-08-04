@@ -44,7 +44,7 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, accessExpiration, refreshExpiration, status, message, _ := services.AuthenticateUser(req.Username, req.Password)
+	accessToken, refreshToken, accessExpiration, refreshExpiration, status, message, _ := services.AuthenticateUser(req.Email, req.Password)
 	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
@@ -86,19 +86,17 @@ func Me(c *gin.Context) {
 	}
 
 	type UserResponse struct {
-		Id       uint   `json:"id"`
-		Name     string `json:"name"`
-		Username string `json:"username"`
-		Email    string `json:"email"`
-		Main     bool   `json:"main"`
+		Id    uint   `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+		Main  bool   `json:"main"`
 	}
 
 	utils.SendJSON(c, http.StatusOK, gin.H{"user": UserResponse{
-		Id:       user.Id,
-		Name:     user.Name,
-		Username: user.Username,
-		Email:    user.Email,
-		Main:     user.Main,
+		Id:    user.Id,
+		Name:  user.Name,
+		Email: user.Email,
+		Main:  user.Main,
 	}}, []string{})
 }
 
@@ -126,19 +124,17 @@ func UpdateMe(c *gin.Context) {
 	}
 
 	type UserResponse struct {
-		Id       uint   `json:"id"`
-		Name     string `json:"name"`
-		Username string `json:"username"`
-		Email    string `json:"email"`
+		Id    uint   `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
 	}
 
 	utils.SendJSON(c, http.StatusOK, gin.H{
 		"message": "Profile updated successfully",
 		"user": UserResponse{
-			Id:       updatedUser.Id,
-			Name:     updatedUser.Name,
-			Username: updatedUser.Username,
-			Email:    updatedUser.Email,
+			Id:    updatedUser.Id,
+			Name:  updatedUser.Name,
+			Email: updatedUser.Email,
 		},
 	}, []string{})
 }

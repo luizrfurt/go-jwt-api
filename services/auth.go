@@ -81,18 +81,6 @@ func FindUserById(id uint) (*models.User, int, string, error) {
 	return &user, 0, "", nil
 }
 
-func findUserByUsername(username string) (*models.User, int, string, error) {
-	var user models.User
-	err := db.DB.Where("username = ?", username).First(&user).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, http.StatusNotFound, "User not found", nil
-		}
-		return nil, http.StatusInternalServerError, "Database error", err
-	}
-	return &user, 0, "", nil
-}
-
 func FindUserByEmail(email string) (*models.User, int, string, error) {
 	var user models.User
 	err := db.DB.Where("email = ?", email).First(&user).Error
@@ -125,7 +113,6 @@ func createUser(req validators.SignUpRequest) (int, string, error) {
 
 	user := models.User{
 		Name:     req.Name,
-		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hashedPassword),
 		Main:     true,
@@ -139,12 +126,12 @@ func createUser(req validators.SignUpRequest) (int, string, error) {
 }
 
 func RegisterUser(req validators.SignUpRequest) (int, string, error) {
-	_, status, message, err := findUserByUsername(req.Username)
+	_, status, message, err := FindUserByEmail(req.Email)
 	if err != nil && status != http.StatusNotFound {
 		return status, message, err
 	}
 	if status == 0 {
-		return http.StatusBadRequest, "Username already exists", nil
+		return http.StatusBadRequest, "Email already exists", nil
 	}
 
 	return createUser(req)
@@ -156,18 +143,17 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 		return nil, status, message, err
 	}
 
-	if req.Username != user.Username {
-		_, status, message, err := findUserByUsername(req.Username)
+	if req.Email != user.Email {
+		_, status, message, err := FindUserByEmail(req.Email)
 		if err != nil && status != http.StatusNotFound {
 			return nil, status, message, err
 		}
 		if status == 0 {
-			return nil, http.StatusBadRequest, "Username already exists", nil
+			return nil, http.StatusBadRequest, "Email already exists", nil
 		}
 	}
 
 	user.Name = req.Name
-	user.Username = req.Username
 	user.Email = req.Email
 
 	if req.NewPassword != nil && *req.NewPassword != "" {
@@ -185,8 +171,8 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 	return user, 0, "", nil
 }
 
-func AuthenticateUser(identifier, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, status int, message string, err error) {
-	user, status, message, err := findUserByUsername(identifier)
+func AuthenticateUser(email, password string) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, status int, message string, err error) {
+	user, status, message, err := FindUserByEmail(email)
 	if status != 0 {
 		return "", "", time.Time{}, time.Time{}, status, message, err
 	}
