@@ -93,6 +93,18 @@ func FindUserByEmail(email string) (*models.User, int, string, error) {
 	return &user, 0, "", nil
 }
 
+func findUserByEmailVerificationToken(token string) (*models.User, int, string, error) {
+	var user models.User
+	err := db.DB.Where("email_verification_token = ?", token).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, http.StatusNotFound, "Invalid or expired verification token", nil
+		}
+		return nil, http.StatusInternalServerError, "Database error", err
+	}
+	return &user, 0, "", nil
+}
+
 func findUserByForgotPasswordToken(token string) (*models.User, int, string, error) {
 	var user models.User
 	err := db.DB.Where("forgot_password_token = ?", token).First(&user).Error
@@ -112,10 +124,11 @@ func createUser(req validators.SignUpRequest) (int, string, error) {
 	}
 
 	user := models.User{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Main:     true,
+		Name:          req.Name,
+		Email:         req.Email,
+		EmailVerified: false,
+		Password:      string(hashedPassword),
+		Main:          true,
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {
@@ -270,6 +283,59 @@ func generateTokenPair(id uint) (accessToken, refreshToken string, expiresIn int
 
 	expiresIn = int64(accessExpiration.Sub(now).Seconds())
 	return accessToken, refreshToken, expiresIn, accessExpiration, refreshExpiration, nil
+}
+
+func SetEmailVerificationToken(user *models.User) (string, int, string, error) {
+	token, err := generateUniqueToken("email_verification_token", 5)
+	if err != nil {
+		return "", http.StatusInternalServerError, "Could not generate verification token", err
+	}
+	user.EmailVerificationToken = token
+	if err := db.DB.Save(user).Error; err != nil {
+		return "", http.StatusInternalServerError, "Database error", err
+	}
+	return token, 0, "", nil
+}
+
+func SendVerificationEmail(user *models.User, token string) error {
+	link := fmt.Sprintf("http://localhost:%s/verify-email/%s", config.AppConfig.PortWeb, token)
+	body := fmt.Sprintf(`
+        <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #2c3e50;">Email Verification</h2>
+            <p>Hello,</p>
+            <p>Please click the button below to verify your email address:</p>
+            <a href="%s" style="
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 15px 0;
+                background-color: #005B73;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: bold;
+            "
+            onmouseover="this.style.backgroundColor='#007991';"
+            onmouseout="this.style.backgroundColor='#005B73';"
+            >Verify Email</a>
+            <p>If you did not sign up, please ignore this email.</p>
+            <p>Thanks,<br/>Your Company Team</p>
+        </div>
+    `, link)
+
+	return utils.SendEmail(user.Email, "Email Verification", body)
+}
+
+func VerifyEmailToken(token string) (int, string, error) {
+	user, status, message, err := findUserByEmailVerificationToken(token)
+	if status != 0 {
+		return status, message, err
+	}
+	user.EmailVerified = true
+	user.EmailVerificationToken = ""
+	if err := db.DB.Save(user).Error; err != nil {
+		return http.StatusInternalServerError, "Database error", err
+	}
+	return 0, "", nil
 }
 
 func generateUniqueToken(field string, maxAttempts int) (string, error) {

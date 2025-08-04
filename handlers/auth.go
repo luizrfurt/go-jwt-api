@@ -29,7 +29,11 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "User registered successfully"}, []string{})
+	user, _, _, _ := services.FindUserByEmail(req.Email)
+	token, _, _, _ := services.SetEmailVerificationToken(user)
+	_ = services.SendVerificationEmail(user, token)
+
+	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "Registration successful. A verification email has been sent to your inbox."}, []string{})
 }
 
 func SignIn(c *gin.Context) {
@@ -41,6 +45,16 @@ func SignIn(c *gin.Context) {
 
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
 		utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
+		return
+	}
+
+	user, status, message, _ := services.FindUserByEmail(req.Email)
+	if status != 0 {
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		return
+	}
+	if !user.EmailVerified {
+		utils.SendJSONError(c, http.StatusUnauthorized, gin.H{"error": "Email not verified. Please check your inbox to confirm your email address."}, []string{})
 		return
 	}
 
@@ -142,6 +156,22 @@ func UpdateMe(c *gin.Context) {
 func SignOut(c *gin.Context) {
 	services.ClearTokensCookies(c)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign out successful"}, []string{})
+}
+
+func VerifyEmail(c *gin.Context) {
+	token := c.Param("token")
+	if token == "" {
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
+		return
+	}
+
+	status, message, _ := services.VerifyEmailToken(token)
+	if status != 0 {
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		return
+	}
+
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Email verified successfully"}, []string{})
 }
 
 func ForgotPassword(c *gin.Context) {
