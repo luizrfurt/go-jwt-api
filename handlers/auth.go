@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"fmt"
+	"go-jwt-api/config"
 	"go-jwt-api/services"
 	"go-jwt-api/utils"
 	"go-jwt-api/validators"
@@ -33,7 +34,11 @@ func SignUp(c *gin.Context) {
 	token, _, _, _ := services.SetEmailVerificationToken(user)
 	_ = services.SendVerificationEmail(user, token)
 
-	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "Registration successful, a verification email has been sent to your inbox"}, []string{})
+	message := "Registration successful"
+	if config.AppConfig.Environment == "production" {
+		message = message + ", a verification email has been sent to your inbox"
+	}
+	utils.SendJSON(c, http.StatusCreated, gin.H{"message": message}, []string{})
 }
 
 func SignIn(c *gin.Context) {
@@ -53,7 +58,7 @@ func SignIn(c *gin.Context) {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
-	if !user.EmailVerified {
+	if !user.EmailVerified && config.AppConfig.Environment == "production" {
 		utils.SendJSONError(c, http.StatusUnauthorized, gin.H{"error": "Email not verified, please check your inbox to confirm your email address."}, []string{})
 		return
 	}
@@ -176,7 +181,7 @@ func VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	token, status, message, _ := services.SetVerifyEmailToken(user)
+	token, status, message, _ := services.SetEmailVerificationToken(user)
 	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return

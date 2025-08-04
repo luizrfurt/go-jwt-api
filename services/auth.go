@@ -123,10 +123,15 @@ func createUser(req validators.SignUpRequest) (int, string, error) {
 		return http.StatusInternalServerError, "Could not hash password", err
 	}
 
+	emailVerified := false
+	if config.AppConfig.Environment != "production" {
+		emailVerified = true
+	}
+
 	user := models.User{
 		Name:          req.Name,
 		Email:         req.Email,
-		EmailVerified: false,
+		EmailVerified: emailVerified,
 		Password:      string(hashedPassword),
 		Main:          true,
 	}
@@ -290,25 +295,12 @@ func SetEmailVerificationToken(user *models.User) (string, int, string, error) {
 	if err != nil {
 		return "", http.StatusInternalServerError, "Could not generate verification token", err
 	}
-	user.EmailVerificationToken = token
-	if err := db.DB.Save(user).Error; err != nil {
-		return "", http.StatusInternalServerError, "Database error", err
-	}
-	return token, 0, "", nil
-}
-
-func SetVerifyEmailToken(user *models.User) (string, int, string, error) {
-	token, err := generateUniqueToken("email_verification_token", 5)
-	if err != nil {
-		return "", http.StatusInternalServerError, "Could not generate unique token", err
-	}
 
 	user.EmailVerified = false
 	user.EmailVerificationToken = token
 	if err := db.DB.Save(user).Error; err != nil {
 		return "", http.StatusInternalServerError, "Database error", err
 	}
-
 	return token, 0, "", nil
 }
 
