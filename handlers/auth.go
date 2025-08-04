@@ -33,7 +33,7 @@ func SignUp(c *gin.Context) {
 	token, _, _, _ := services.SetEmailVerificationToken(user)
 	_ = services.SendVerificationEmail(user, token)
 
-	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "Registration successful. A verification email has been sent to your inbox."}, []string{})
+	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "Registration successful, a verification email has been sent to your inbox"}, []string{})
 }
 
 func SignIn(c *gin.Context) {
@@ -54,7 +54,7 @@ func SignIn(c *gin.Context) {
 		return
 	}
 	if !user.EmailVerified {
-		utils.SendJSONError(c, http.StatusUnauthorized, gin.H{"error": "Email not verified. Please check your inbox to confirm your email address."}, []string{})
+		utils.SendJSONError(c, http.StatusUnauthorized, gin.H{"error": "Email not verified, please check your inbox to confirm your email address."}, []string{})
 		return
 	}
 
@@ -159,13 +159,47 @@ func SignOut(c *gin.Context) {
 }
 
 func VerifyEmail(c *gin.Context) {
+	var req validators.VerifyEmailRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid verify-email request"}, []string{})
+		return
+	}
+
+	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
+		return
+	}
+
+	user, status, message, _ := services.FindUserByEmail(req.Email)
+	if status != 0 {
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		return
+	}
+
+	token, status, message, _ := services.SetVerifyEmailToken(user)
+	if status != 0 {
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		return
+	}
+
+	if err := services.SendVerificationEmail(user, token); err != nil {
+		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"}, []string{})
+		return
+	}
+
+	utils.SendJSON(c, http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Email verification instructions sent to %s", user.Email),
+	}, []string{})
+}
+
+func VerificationEmailValidToken(c *gin.Context) {
 	token := c.Param("token")
 	if token == "" {
 		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
 		return
 	}
 
-	status, message, _ := services.VerifyEmailToken(token)
+	status, message, _ := services.IsVerificationEmailTokenValid(token)
 	if status != 0 {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return

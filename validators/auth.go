@@ -12,6 +12,10 @@ type SignInRequest struct {
 	Password string `json:"password" validate:"required,min=6,max=30"`
 }
 
+type VerifyEmailRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
 type ForgotPasswordRequest struct {
 	Email string `json:"email" validate:"required,email"`
 }

@@ -297,6 +297,21 @@ func SetEmailVerificationToken(user *models.User) (string, int, string, error) {
 	return token, 0, "", nil
 }
 
+func SetVerifyEmailToken(user *models.User) (string, int, string, error) {
+	token, err := generateUniqueToken("email_verification_token", 5)
+	if err != nil {
+		return "", http.StatusInternalServerError, "Could not generate unique token", err
+	}
+
+	user.EmailVerified = false
+	user.EmailVerificationToken = token
+	if err := db.DB.Save(user).Error; err != nil {
+		return "", http.StatusInternalServerError, "Database error", err
+	}
+
+	return token, 0, "", nil
+}
+
 func SendVerificationEmail(user *models.User, token string) error {
 	link := fmt.Sprintf("http://localhost:%s/verify-email/%s", config.AppConfig.PortWeb, token)
 	body := fmt.Sprintf(`
@@ -325,7 +340,7 @@ func SendVerificationEmail(user *models.User, token string) error {
 	return utils.SendEmail(user.Email, "Email Verification", body)
 }
 
-func VerifyEmailToken(token string) (int, string, error) {
+func IsVerificationEmailTokenValid(token string) (int, string, error) {
 	user, status, message, err := findUserByEmailVerificationToken(token)
 	if status != 0 {
 		return status, message, err
@@ -336,37 +351,6 @@ func VerifyEmailToken(token string) (int, string, error) {
 		return http.StatusInternalServerError, "Database error", err
 	}
 	return 0, "", nil
-}
-
-func generateUniqueToken(field string, maxAttempts int) (string, error) {
-	allowed := map[string]struct{}{
-		"forgot_password_token":    {},
-		"email_verification_token": {},
-	}
-
-	if _, ok := allowed[field]; !ok {
-		return "", fmt.Errorf("Unsupported field for uniqueness check: %s", field)
-	}
-
-	for range maxAttempts {
-		bytes := make([]byte, 32)
-		if _, err := rand.Read(bytes); err != nil {
-			return "", err
-		}
-		token := hex.EncodeToString(bytes)
-
-		var existing models.User
-		condition := fmt.Sprintf("%s = ?", field)
-		err := db.DB.Where(condition, token).First(&existing).Error
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return token, nil
-			}
-			return "", err
-		}
-	}
-
-	return "", fmt.Errorf("Could not generate unique token for field %s after %d attempts", field, maxAttempts)
 }
 
 func SetForgotPasswordToken(user *models.User) (string, int, string, error) {
@@ -449,6 +433,37 @@ func ChangePasswordWithToken(token, newPassword string) (int, string, error) {
 	}
 
 	return 0, "", nil
+}
+
+func generateUniqueToken(field string, maxAttempts int) (string, error) {
+	allowed := map[string]struct{}{
+		"forgot_password_token":    {},
+		"email_verification_token": {},
+	}
+
+	if _, ok := allowed[field]; !ok {
+		return "", fmt.Errorf("Unsupported field for uniqueness check: %s", field)
+	}
+
+	for range maxAttempts {
+		bytes := make([]byte, 32)
+		if _, err := rand.Read(bytes); err != nil {
+			return "", err
+		}
+		token := hex.EncodeToString(bytes)
+
+		var existing models.User
+		condition := fmt.Sprintf("%s = ?", field)
+		err := db.DB.Where(condition, token).First(&existing).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return token, nil
+			}
+			return "", err
+		}
+	}
+
+	return "", fmt.Errorf("Could not generate unique token for field %s after %d attempts", field, maxAttempts)
 }
 
 func GenerateCsrfToken() (string, int, string, error) {

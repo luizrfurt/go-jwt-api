@@ -16,7 +16,8 @@ func RegisterAuthRoutes(r *gin.Engine) {
 		authGroup.POST("/refresh", handlers.Refresh)
 		authGroup.DELETE("/signout", handlers.SignOut)
 
-		authGroup.GET("/verify-email/:token", handlers.VerifyEmail)
+		authGroup.POST("/verify-email", handlers.VerifyEmail)
+		authGroup.GET("/verify-email/valid-token/:token", handlers.VerificationEmailValidToken)
 
 		authGroup.POST("/forgot-password", handlers.ForgotPassword)
 		authGroup.GET("/reset-password/valid-token/:token", handlers.ResetPasswordValidToken)
