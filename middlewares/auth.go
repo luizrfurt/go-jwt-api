@@ -30,6 +30,39 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("sub", claims.Id)
+		c.Set("ctx", claims.ContextId)
+		c.Next()
+	}
+}
+
+func ContextAccessMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userId, exists := c.Get("sub")
+		if !exists {
+			utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
+				"error": "User not found in context",
+			}, []string{})
+			c.Abort()
+			return
+		}
+
+		contextId, exists := c.Get("ctx")
+		if !exists || contextId.(uint) == 0 {
+			utils.SendJSONError(c, http.StatusBadRequest, gin.H{
+				"error": "No active context",
+			}, []string{})
+			c.Abort()
+			return
+		}
+
+		if !services.HasContextAccess(userId.(uint), contextId.(uint)) {
+			utils.SendJSONError(c, http.StatusForbidden, gin.H{
+				"error": "Access denied to this context",
+			}, []string{})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }

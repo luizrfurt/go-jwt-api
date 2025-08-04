@@ -28,8 +28,17 @@ func InitDBConfig() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	err = DB.AutoMigrate(&models.User{})
+	err = DB.AutoMigrate(
+		&models.User{},
+		&models.Context{},
+		&models.UserContext{},
+	)
 	if err != nil {
 		log.Fatal("Failed to auto-migrate database:", err)
+	}
+
+	err = DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_context_unique ON user_contexts(user_id, context_id)").Error
+	if err != nil {
+		log.Fatal("Failed to create unique index:", err)
 	}
 }

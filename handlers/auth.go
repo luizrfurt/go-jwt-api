@@ -68,8 +68,36 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
+	contexts, _, _, _ := services.GetUserContexts(user.Id)
+	activeContext, _, _, _ := services.GetActiveContext(user.Id)
+
+	type ContextResponse struct {
+		Id          uint   `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		IsActive    bool   `json:"is_active"`
+	}
+
+	var contextResponse []ContextResponse
+	for _, ctx := range contexts {
+		isActive := false
+		if activeContext != nil && activeContext.Id == ctx.Id {
+			isActive = true
+		}
+
+		contextResponse = append(contextResponse, ContextResponse{
+			Id:          ctx.Id,
+			Name:        ctx.Name,
+			Description: ctx.Description,
+			IsActive:    isActive,
+		})
+	}
+
 	services.SetJwtTokensCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
-	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Sign in successful"}, []string{})
+	utils.SendJSON(c, http.StatusOK, gin.H{
+		"message":  "Sign in successful",
+		"contexts": contextResponse,
+	}, []string{})
 }
 
 func Refresh(c *gin.Context) {
@@ -123,7 +151,7 @@ func Me(c *gin.Context) {
 func UpdateMe(c *gin.Context) {
 	var req validators.UpdateMeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid me-edit request"}, []string{})
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid update me request"}, []string{})
 		return
 	}
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
@@ -171,7 +199,7 @@ func SignOut(c *gin.Context) {
 func VerifyEmail(c *gin.Context) {
 	var req validators.VerifyEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid verify-email request"}, []string{})
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid verify email request"}, []string{})
 		return
 	}
 
@@ -226,7 +254,7 @@ func VerificationEmailValidToken(c *gin.Context) {
 func ForgotPassword(c *gin.Context) {
 	var req validators.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid forgot-password request"}, []string{})
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid forgot password request"}, []string{})
 		return
 	}
 
@@ -298,7 +326,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 
 	var req validators.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid reset-password request"}, []string{})
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid reset password request"}, []string{})
 		return
 	}
 

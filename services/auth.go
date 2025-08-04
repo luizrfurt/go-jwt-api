@@ -29,6 +29,7 @@ var (
 
 type Claims struct {
 	Id        uint   `json:"id"`
+	ContextId uint   `json:"context_id"`
 	TokenType string `json:"token_type"`
 	jwt.RegisteredClaims
 }
@@ -136,10 +137,37 @@ func createUser(req validators.SignUpRequest) (int, string, error) {
 		Main:          true,
 	}
 
-	if err := db.DB.Create(&user).Error; err != nil {
+	tx := db.DB.Begin()
+
+	if err := tx.Create(&user).Error; err != nil {
+		tx.Rollback()
 		return http.StatusInternalServerError, "Failed to create user", err
 	}
 
+	context := models.Context{
+		Name:        "My Workspace",
+		Description: "Default workspace",
+		OwnerId:     user.Id,
+	}
+
+	if err := tx.Create(&context).Error; err != nil {
+		tx.Rollback()
+		return http.StatusInternalServerError, "Failed to create default context", err
+	}
+
+	userContext := models.UserContext{
+		UserId:    user.Id,
+		ContextId: context.Id,
+		Role:      "owner",
+		IsActive:  true,
+	}
+
+	if err := tx.Create(&userContext).Error; err != nil {
+		tx.Rollback()
+		return http.StatusInternalServerError, "Failed to create user context relation", err
+	}
+
+	tx.Commit()
 	return 0, "", nil
 }
 
@@ -211,7 +239,13 @@ func AuthenticateUser(email, password string) (accessToken, refreshToken string,
 		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Invalid credentials", nil
 	}
 
-	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id)
+	activeContext, _, _, _ := GetActiveContext(user.Id)
+	var contextId uint
+	if activeContext != nil {
+		contextId = activeContext.Id
+	}
+
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id, contextId)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, http.StatusInternalServerError, "Could not generate tokens", err
 	}
@@ -238,7 +272,20 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 		return "", "", time.Time{}, time.Time{}, status, message, err
 	}
 
-	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id)
+	contextId := claims.ContextId
+
+	if contextId != 0 {
+		if !HasContextAccess(user.Id, contextId) {
+			activeContext, _, _, _ := GetActiveContext(user.Id)
+			if activeContext != nil {
+				contextId = activeContext.Id
+			} else {
+				contextId = 0
+			}
+		}
+	}
+
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id, contextId)
 	if err != nil {
 		return "", "", time.Time{}, time.Time{}, http.StatusInternalServerError, "Could not generate tokens", err
 	}
@@ -263,12 +310,13 @@ func ValidateAccessToken(tokenStr string) (*Claims, int, string, error) {
 	return claims, 0, "", nil
 }
 
-func generateTokenPair(id uint) (accessToken, refreshToken string, expiresIn int64, accessExpiration, refreshExpiration time.Time, err error) {
+func generateTokenPair(id uint, contextId uint) (accessToken, refreshToken string, expiresIn int64, accessExpiration, refreshExpiration time.Time, err error) {
 	now := time.Now()
 
 	accessExpiration = now.Add(15 * time.Minute)
 	accessClaims := &Claims{
 		Id:        id,
+		ContextId: contextId,
 		TokenType: "xaccess",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(accessExpiration),
@@ -285,6 +333,7 @@ func generateTokenPair(id uint) (accessToken, refreshToken string, expiresIn int
 	refreshExpiration = now.Add(7 * 24 * time.Hour)
 	refreshClaims := &Claims{
 		Id:        id,
+		ContextId: contextId,
 		TokenType: "xrefresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(refreshExpiration),
@@ -480,4 +529,13 @@ func GenerateCsrfToken() (string, int, string, error) {
 		return "", http.StatusInternalServerError, "Could not generate CSRF token", err
 	}
 	return hex.EncodeToString(bytes), 0, "", nil
+}
+
+func GenerateTokensWithContext(userId uint, contextId uint) (accessToken, refreshToken string, accessExpiration, refreshExpiration time.Time, status int, message string, err error) {
+	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(userId, contextId)
+	if err != nil {
+		return "", "", time.Time{}, time.Time{}, http.StatusInternalServerError, "Could not generate tokens", err
+	}
+
+	return accessToken, refreshToken, accessExpiration, refreshExpiration, 0, "", nil
 }
