@@ -30,12 +30,11 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	user, _, _, _ := services.FindUserByEmail(req.Email)
-	token, _, _, _ := services.SetEmailVerificationToken(user)
-	_ = services.SendVerificationEmail(user, token)
-
 	message := "Registration successful"
 	if config.AppConfig.Environment == "production" {
+		user, _, _, _ := services.FindUserByEmail(req.Email)
+		token, _, _, _ := services.SetEmailVerificationToken(user, false)
+		_ = services.SendVerificationEmail(user, token)
 		message = message + ", a verification email has been sent to your inbox"
 	}
 	utils.SendJSON(c, http.StatusCreated, gin.H{"message": message}, []string{})
@@ -105,17 +104,19 @@ func Me(c *gin.Context) {
 	}
 
 	type UserResponse struct {
-		Id    uint   `json:"id"`
-		Name  string `json:"name"`
-		Email string `json:"email"`
-		Main  bool   `json:"main"`
+		Id            uint   `json:"id"`
+		Name          string `json:"name"`
+		Email         string `json:"email"`
+		EmailVerified bool   `json:"email_verified"`
+		Main          bool   `json:"main"`
 	}
 
 	utils.SendJSON(c, http.StatusOK, gin.H{"user": UserResponse{
-		Id:    user.Id,
-		Name:  user.Name,
-		Email: user.Email,
-		Main:  user.Main,
+		Id:            user.Id,
+		Name:          user.Name,
+		Email:         user.Email,
+		EmailVerified: user.EmailVerified,
+		Main:          user.Main,
 	}}, []string{})
 }
 
@@ -143,17 +144,21 @@ func UpdateMe(c *gin.Context) {
 	}
 
 	type UserResponse struct {
-		Id    uint   `json:"id"`
-		Name  string `json:"name"`
-		Email string `json:"email"`
+		Id            uint   `json:"id"`
+		Name          string `json:"name"`
+		Email         string `json:"email"`
+		EmailVerified bool   `json:"email_verified"`
+		Main          bool   `json:"main"`
 	}
 
 	utils.SendJSON(c, http.StatusOK, gin.H{
 		"message": "Profile updated successfully",
 		"user": UserResponse{
-			Id:    updatedUser.Id,
-			Name:  updatedUser.Name,
-			Email: updatedUser.Email,
+			Id:            updatedUser.Id,
+			Name:          updatedUser.Name,
+			Email:         updatedUser.Email,
+			EmailVerified: updatedUser.EmailVerified,
+			Main:          updatedUser.Main,
 		},
 	}, []string{})
 }
@@ -181,20 +186,25 @@ func VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	token, status, message, _ := services.SetEmailVerificationToken(user)
-	if status != 0 {
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
-		return
+	if config.AppConfig.Environment == "production" && !user.EmailVerified {
+		token, status, message, _ := services.SetEmailVerificationToken(user, false)
+		if status != 0 {
+			utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+			return
+		}
+
+		if err := services.SendVerificationEmail(user, token); err != nil {
+			utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"}, []string{})
+			return
+		}
+
+		utils.SendJSON(c, http.StatusOK, gin.H{
+			"message": fmt.Sprintf("Email verification instructions sent to %s", user.Email),
+		}, []string{})
+	} else {
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Email %s already verified", user.Email)}, []string{})
 	}
 
-	if err := services.SendVerificationEmail(user, token); err != nil {
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"}, []string{})
-		return
-	}
-
-	utils.SendJSON(c, http.StatusOK, gin.H{
-		"message": fmt.Sprintf("Email verification instructions sent to %s", user.Email),
-	}, []string{})
 }
 
 func VerificationEmailValidToken(c *gin.Context) {

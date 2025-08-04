@@ -174,6 +174,18 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 	user.Name = req.Name
 	user.Email = req.Email
 
+	if config.AppConfig.Environment == "production" {
+		token, status, message, err := SetEmailVerificationToken(user, true)
+		if status != 0 {
+			return nil, status, message, err
+		}
+
+		user.EmailVerified = false
+		user.EmailVerificationToken = token
+
+		_ = SendVerificationEmail(user, token)
+	}
+
 	if req.NewPassword != nil && *req.NewPassword != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.NewPassword), bcrypt.DefaultCost)
 		if err != nil {
@@ -290,10 +302,14 @@ func generateTokenPair(id uint) (accessToken, refreshToken string, expiresIn int
 	return accessToken, refreshToken, expiresIn, accessExpiration, refreshExpiration, nil
 }
 
-func SetEmailVerificationToken(user *models.User) (string, int, string, error) {
+func SetEmailVerificationToken(user *models.User, isUpdateUser bool) (string, int, string, error) {
 	token, err := generateUniqueToken("email_verification_token", 5)
 	if err != nil {
 		return "", http.StatusInternalServerError, "Could not generate verification token", err
+	}
+
+	if isUpdateUser {
+		return token, 0, "", nil
 	}
 
 	user.EmailVerified = false
