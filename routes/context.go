@@ -14,7 +14,7 @@ func RegisterContextRoutes(r *gin.Engine) {
 	{
 		contextGroup.GET("/", handlers.GetMyContexts)
 		contextGroup.GET("/active", handlers.GetActiveContext)
-		contextGroup.POST("/", handlers.CreateContext)
+		contextGroup.POST("", handlers.CreateContext)
 		contextGroup.POST("/select", handlers.SelectContext)
 	}
 }
