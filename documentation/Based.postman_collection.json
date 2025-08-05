@@ -124,7 +124,7 @@
 					"response": []
 				},
 				{
-					"name": "Me",
+					"name": "Update me",
 					"request": {
 						"method": "PUT",
 						"header": [],
@@ -182,7 +182,7 @@
 					"response": []
 				},
 				{
-					"name": "SignOut",
+					"name": "Sign out",
 					"request": {
 						"method": "DELETE",
 						"header": [],
