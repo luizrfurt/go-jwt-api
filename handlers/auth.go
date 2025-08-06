@@ -141,13 +141,20 @@ func Me(c *gin.Context) {
 		Main          bool   `json:"main"`
 	}
 
-	utils.SendJSON(c, http.StatusOK, gin.H{"user": UserResponse{
+	userResp := UserResponse{
 		Id:            user.Id,
 		Name:          user.Name,
 		Email:         user.Email,
 		EmailVerified: user.EmailVerified,
 		Main:          user.Main,
-	}}, []string{})
+	}
+
+	utils.SendJSON(
+		c,
+		http.StatusOK,
+		gin.H{"message": "User retrieved successfully"},
+		[]UserResponse{userResp},
+	)
 }
 
 func UpdateMe(c *gin.Context) {
@@ -181,16 +188,20 @@ func UpdateMe(c *gin.Context) {
 		Main          bool   `json:"main"`
 	}
 
-	utils.SendJSON(c, http.StatusOK, gin.H{
-		"message": "Profile updated successfully",
-		"user": UserResponse{
-			Id:            updatedUser.Id,
-			Name:          updatedUser.Name,
-			Email:         updatedUser.Email,
-			EmailVerified: updatedUser.EmailVerified,
-			Main:          updatedUser.Main,
-		},
-	}, []string{})
+	userResp := UserResponse{
+		Id:            updatedUser.Id,
+		Name:          updatedUser.Name,
+		Email:         updatedUser.Email,
+		EmailVerified: updatedUser.EmailVerified,
+		Main:          updatedUser.Main,
+	}
+
+	utils.SendJSON(
+		c,
+		http.StatusOK,
+		gin.H{"message": "User updated successfully"},
+		[]UserResponse{userResp},
+	)
 }
 
 func SignOut(c *gin.Context) {
