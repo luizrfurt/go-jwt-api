@@ -7,6 +7,7 @@ import (
 	"go-jwt-api/validators"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,11 +28,12 @@ func GetMyContexts(c *gin.Context) {
 	selectedContext, _, _, _ := services.GetSelectedContext(userId.(uint))
 
 	type ContextResponse struct {
-		Id          uint   `json:"id"`
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Active      bool   `json:"active"`
-		IsSelected  bool   `json:"is_selected"`
+		Id          uint      `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Active      bool      `json:"active"`
+		IsSelected  bool      `json:"is_selected"`
+		CreatedAt   time.Time `json:"created_at"`
 	}
 
 	var response []ContextResponse
@@ -47,6 +49,7 @@ func GetMyContexts(c *gin.Context) {
 			Description: ctx.Description,
 			Active:      ctx.Active,
 			IsSelected:  isSelected,
+			CreatedAt:   ctx.CreatedAt,
 		})
 	}
 
@@ -78,10 +81,11 @@ func CreateContext(c *gin.Context) {
 	}
 
 	type ContextResponse struct {
-		Id          uint   `json:"id"`
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Active      bool   `json:"active"`
+		Id          uint      `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Active      bool      `json:"active"`
+		CreatedAt   time.Time `json:"created_at"`
 	}
 
 	createdResp := ContextResponse{
@@ -89,6 +93,7 @@ func CreateContext(c *gin.Context) {
 		Name:        context.Name,
 		Description: context.Description,
 		Active:      context.Active,
+		CreatedAt:   context.CreatedAt,
 	}
 
 	utils.SendJSON(
