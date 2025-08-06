@@ -84,12 +84,19 @@ func CreateContext(c *gin.Context) {
 		Active      bool   `json:"active"`
 	}
 
-	utils.SendJSON(c, http.StatusCreated, gin.H{"message": "Context created successfully"}, ContextResponse{
+	createdResp := ContextResponse{
 		Id:          context.Id,
 		Name:        context.Name,
 		Description: context.Description,
 		Active:      context.Active,
-	})
+	}
+
+	utils.SendJSON(
+		c,
+		http.StatusCreated,
+		gin.H{"message": "Context created successfully"},
+		[]ContextResponse{createdResp},
+	)
 }
 
 func UpdateContext(c *gin.Context) {
@@ -130,12 +137,19 @@ func UpdateContext(c *gin.Context) {
 		Active      bool   `json:"active"`
 	}
 
-	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Context updated successfully"}, ContextResponse{
+	updatedResp := ContextResponse{
 		Id:          context.Id,
 		Name:        context.Name,
 		Description: context.Description,
 		Active:      context.Active,
-	})
+	}
+
+	utils.SendJSON(
+		c,
+		http.StatusOK,
+		gin.H{"message": "Context updated successfully"},
+		[]ContextResponse{updatedResp},
+	)
 }
 
 func DeleteContext(c *gin.Context) {
@@ -217,10 +231,17 @@ func GetSelectedContext(c *gin.Context) {
 		Active      bool   `json:"active"`
 	}
 
-	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Selected context retrieved successfully"}, ContextResponse{
+	selectedResp := ContextResponse{
 		Id:          context.Id,
 		Name:        context.Name,
 		Description: context.Description,
 		Active:      context.Active,
-	})
+	}
+
+	utils.SendJSON(
+		c,
+		http.StatusOK,
+		gin.H{"message": "Selected context retrieved successfully"},
+		[]ContextResponse{selectedResp},
+	)
 }
