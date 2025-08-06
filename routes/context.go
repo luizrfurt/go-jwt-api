@@ -13,8 +13,10 @@ func RegisterContextRoutes(r *gin.Engine) {
 	contextGroup.Use(middlewares.AuthMiddleware(), middlewares.CSRFMiddleware())
 	{
 		contextGroup.GET("/", handlers.GetMyContexts)
-		contextGroup.GET("/active", handlers.GetActiveContext)
+		contextGroup.GET("/selected", handlers.GetSelectedContext)
 		contextGroup.POST("", handlers.CreateContext)
-		contextGroup.POST("/select", handlers.SelectContext)
+		contextGroup.PUT("/:id", handlers.UpdateContext)
+		contextGroup.DELETE("/:id", handlers.DeleteContext)
+		contextGroup.POST("/select/:id", handlers.SelectContext)
 	}
 }

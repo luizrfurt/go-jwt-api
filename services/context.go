@@ -16,6 +16,7 @@ func CreateDefaultContext(userId uint) error {
 		Name:        "My Workspace",
 		Description: "Default workspace",
 		OwnerId:     userId,
+		Active:      true,
 	}
 
 	if err := db.DB.Create(&context).Error; err != nil {
@@ -26,7 +27,7 @@ func CreateDefaultContext(userId uint) error {
 		UserId:    userId,
 		ContextId: context.Id,
 		Role:      "owner",
-		IsActive:  true,
+		Selected:  true,
 	}
 
 	return db.DB.Create(&userContext).Error
@@ -37,7 +38,7 @@ func GetUserContexts(userId uint) ([]models.Context, int, string, error) {
 
 	err := db.DB.Table("contexts").
 		Joins("JOIN user_contexts ON contexts.id = user_contexts.context_id").
-		Where("user_contexts.user_id = ?", userId).
+		Where("user_contexts.user_id = ? AND contexts.owner_id = ?", userId, userId).
 		Find(&contexts).Error
 
 	if err != nil {
@@ -47,16 +48,16 @@ func GetUserContexts(userId uint) ([]models.Context, int, string, error) {
 	return contexts, 0, "", nil
 }
 
-func GetActiveContext(userId uint) (*models.Context, int, string, error) {
+func GetSelectedContext(userId uint) (*models.Context, int, string, error) {
 	var userContext models.UserContext
 
 	err := db.DB.Preload("Context").
-		Where("user_id = ? AND is_active = ?", userId, true).
+		Where("user_id = ? AND selected = ?", userId, true).
 		First(&userContext).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, http.StatusNotFound, "No active context found", nil
+			return nil, http.StatusNotFound, "No selected context found", nil
 		}
 		return nil, http.StatusInternalServerError, "Database error", err
 	}
@@ -69,6 +70,7 @@ func CreateContext(userId uint, req validators.CreateContextRequest) (*models.Co
 		Name:        req.Name,
 		Description: req.Description,
 		OwnerId:     userId,
+		Active:      true,
 	}
 
 	if err := db.DB.Create(&context).Error; err != nil {
@@ -79,7 +81,7 @@ func CreateContext(userId uint, req validators.CreateContextRequest) (*models.Co
 		UserId:    userId,
 		ContextId: context.Id,
 		Role:      "owner",
-		IsActive:  false,
+		Selected:  false,
 	}
 
 	if err := db.DB.Create(&userContext).Error; err != nil {
@@ -89,9 +91,93 @@ func CreateContext(userId uint, req validators.CreateContextRequest) (*models.Co
 	return &context, 0, "", nil
 }
 
+func UpdateContext(userId uint, contextId uint, req validators.UpdateContextRequest) (*models.Context, int, string, error) {
+	context, status, message, err := GetContextById(contextId)
+	if status != 0 {
+		return nil, status, message, err
+	}
+
+	if context.OwnerId != userId {
+		return nil, http.StatusForbidden, "Access denied to this context", nil
+	}
+
+	if !context.Active {
+		return nil, http.StatusBadRequest, "Cannot update inactive context", nil
+	}
+
+	context.Name = req.Name
+	context.Description = req.Description
+
+	if err := db.DB.Save(context).Error; err != nil {
+		return nil, http.StatusInternalServerError, "Failed to update context", err
+	}
+
+	return context, 0, "", nil
+}
+
+func DeleteContext(userId uint, contextId uint) (int, string, error) {
+	context, status, message, err := GetContextById(contextId)
+	if status != 0 {
+		return status, message, err
+	}
+
+	if context.OwnerId != userId {
+		return http.StatusForbidden, "Access denied to this context", nil
+	}
+
+	if !context.Active {
+		return http.StatusBadRequest, "Context is already inactive", nil
+	}
+
+	// Check if this is the selected context
+	selectedContext, _, _, _ := GetSelectedContext(userId)
+	if selectedContext != nil && selectedContext.Id == contextId {
+		// Deselect this context
+		err = db.DB.Model(&models.UserContext{}).
+			Where("user_id = ? AND context_id = ?", userId, contextId).
+			Update("selected", false).Error
+		if err != nil {
+			return http.StatusInternalServerError, "Failed to deselect context", err
+		}
+
+		// Try to select another active context
+		var userContext models.UserContext
+		err = db.DB.Joins("JOIN contexts ON contexts.id = user_contexts.context_id").
+			Where("user_contexts.user_id = ? AND contexts.active = ? AND contexts.id != ?", userId, true, contextId).
+			First(&userContext).Error
+
+		if err == nil {
+			// Select the first available active context
+			err = db.DB.Model(&userContext).Update("selected", true).Error
+			if err != nil {
+				return http.StatusInternalServerError, "Failed to select alternative context", err
+			}
+		}
+	}
+
+	// Inactivate the context
+	context.Active = false
+	if err := db.DB.Save(context).Error; err != nil {
+		return http.StatusInternalServerError, "Failed to inactivate context", err
+	}
+
+	return 0, "", nil
+}
+
 func SelectContext(userId uint, contextId uint) (int, string, error) {
+	// Check if context exists and is active
+	context, status, message, err := GetContextById(contextId)
+	if status != 0 {
+		return status, message, err
+	}
+
+	if !context.Active {
+		return http.StatusBadRequest, "Cannot select inactive context", nil
+	}
+
+	// Check if user has access to this context
 	var userContext models.UserContext
-	err := db.DB.Where("user_id = ? AND context_id = ?", userId, contextId).First(&userContext).Error
+	err = db.DB.Where("user_id = ? AND context_id = ?", userId, contextId).First(&userContext).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return http.StatusForbidden, "Access denied to this context", nil
@@ -99,16 +185,18 @@ func SelectContext(userId uint, contextId uint) (int, string, error) {
 		return http.StatusInternalServerError, "Database error", err
 	}
 
+	// Deselect all contexts for this user
 	err = db.DB.Model(&models.UserContext{}).
 		Where("user_id = ?", userId).
-		Update("is_active", false).Error
+		Update("selected", false).Error
 	if err != nil {
-		return http.StatusInternalServerError, "Failed to deactivate current context", err
+		return http.StatusInternalServerError, "Failed to deselect current context", err
 	}
 
-	err = db.DB.Model(&userContext).Update("is_active", true).Error
+	// Select the new context
+	err = db.DB.Model(&userContext).Update("selected", true).Error
 	if err != nil {
-		return http.StatusInternalServerError, "Failed to activate context", err
+		return http.StatusInternalServerError, "Failed to select context", err
 	}
 
 	return 0, "", nil
@@ -117,7 +205,8 @@ func SelectContext(userId uint, contextId uint) (int, string, error) {
 func HasContextAccess(userId uint, contextId uint) bool {
 	var count int64
 	db.DB.Model(&models.UserContext{}).
-		Where("user_id = ? AND context_id = ?", userId, contextId).
+		Joins("JOIN contexts ON contexts.id = user_contexts.context_id").
+		Where("user_contexts.user_id = ? AND user_contexts.context_id = ? AND contexts.active = ?", userId, contextId, true).
 		Count(&count)
 
 	return count > 0

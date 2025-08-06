@@ -159,7 +159,7 @@ func createUser(req validators.SignUpRequest) (int, string, error) {
 		UserId:    user.Id,
 		ContextId: context.Id,
 		Role:      "owner",
-		IsActive:  true,
+		Selected:  true,
 	}
 
 	if err := tx.Create(&userContext).Error; err != nil {
@@ -240,10 +240,10 @@ func AuthenticateUser(email, password string) (accessToken, refreshToken string,
 		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Invalid credentials", nil
 	}
 
-	activeContext, _, _, _ := GetActiveContext(user.Id)
+	selectedContext, _, _, _ := GetSelectedContext(user.Id)
 	var contextId uint
-	if activeContext != nil {
-		contextId = activeContext.Id
+	if selectedContext != nil {
+		contextId = selectedContext.Id
 	}
 
 	accessToken, refreshToken, _, accessExpiration, refreshExpiration, err = generateTokenPair(user.Id, contextId)
@@ -277,9 +277,9 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 
 	if contextId != 0 {
 		if !HasContextAccess(user.Id, contextId) {
-			activeContext, _, _, _ := GetActiveContext(user.Id)
-			if activeContext != nil {
-				contextId = activeContext.Id
+			selectedContext, _, _, _ := GetSelectedContext(user.Id)
+			if selectedContext != nil {
+				contextId = selectedContext.Id
 			} else {
 				contextId = 0
 			}

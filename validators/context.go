@@ -6,6 +6,11 @@ type CreateContextRequest struct {
 	Description string `json:"description" validate:"required,min=3,max=200"`
 }
 
+type UpdateContextRequest struct {
+	Name        string `json:"name" validate:"required,min=3,max=50"`
+	Description string `json:"description" validate:"required,min=3,max=200"`
+}
+
 type SelectContextRequest struct {
 	ContextId uint `json:"context_id" validate:"required"`
 }

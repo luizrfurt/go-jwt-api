@@ -69,27 +69,29 @@ func SignIn(c *gin.Context) {
 	}
 
 	contexts, _, _, _ := services.GetUserContexts(user.Id)
-	activeContext, _, _, _ := services.GetActiveContext(user.Id)
+	selectedContext, _, _, _ := services.GetSelectedContext(user.Id)
 
 	type ContextResponse struct {
 		Id          uint   `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
-		IsActive    bool   `json:"is_active"`
+		Active      bool   `json:"active"`
+		IsSelected  bool   `json:"is_selected"`
 	}
 
 	var contextResponse []ContextResponse
 	for _, ctx := range contexts {
-		isActive := false
-		if activeContext != nil && activeContext.Id == ctx.Id {
-			isActive = true
+		isSelected := false
+		if selectedContext != nil && selectedContext.Id == ctx.Id {
+			isSelected = true
 		}
 
 		contextResponse = append(contextResponse, ContextResponse{
 			Id:          ctx.Id,
 			Name:        ctx.Name,
 			Description: ctx.Description,
-			IsActive:    isActive,
+			Active:      ctx.Active,
+			IsSelected:  isSelected,
 		})
 	}
 
