@@ -57,7 +57,7 @@ func SignIn(c *gin.Context) {
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
-	if !user.EmailVerified && config.AppConfig.Environment == "production" {
+	if config.AppConfig.Environment == "production" && !user.EmailVerified {
 		utils.SendJSONError(c, http.StatusUnauthorized, gin.H{"error": "Email not verified, please check your inbox to confirm your email address."}, []string{})
 		return
 	}

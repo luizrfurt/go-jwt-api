@@ -200,9 +200,8 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 	}
 
 	user.Name = req.Name
-	user.Email = req.Email
 
-	if config.AppConfig.Environment == "production" {
+	if config.AppConfig.Environment == "production" && req.Email != user.Email {
 		token, status, message, err := SetEmailVerificationToken(user, true)
 		if status != 0 {
 			return nil, status, message, err
@@ -213,6 +212,8 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 
 		_ = SendVerificationEmail(user, token)
 	}
+
+	user.Email = req.Email
 
 	if req.NewPassword != nil && *req.NewPassword != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.NewPassword), bcrypt.DefaultCost)
