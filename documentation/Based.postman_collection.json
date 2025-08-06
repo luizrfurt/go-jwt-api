@@ -130,7 +130,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"John Doe\",\r\n    \"email\": \"john@mail.com\",\r\n    \"new_password\": \"secret321\" // only if you want to change\r\n}",
+							"raw": "{\r\n    \"name\": \"John Doe\",\r\n    \"email\": \"john@mail.com\",\r\n    \"new_password\": \"secret321\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -235,12 +235,12 @@
 					"response": []
 				},
 				{
-					"name": "Get active context",
+					"name": "Get selected context",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3308/contexts/active",
+							"raw": "http://localhost:3308/contexts/selected",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -248,7 +248,7 @@
 							"port": "3308",
 							"path": [
 								"contexts",
-								"active"
+								"selected"
 							]
 						}
 					},
@@ -289,7 +289,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"context_id\": 2\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -297,7 +297,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3308/contexts/select",
+							"raw": "http://localhost:3308/contexts/select/:id",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -305,7 +305,84 @@
 							"port": "3308",
 							"path": [
 								"contexts",
-								"select"
+								"select",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a context",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"My Workspace I\",\r\n    \"description\": \"Default workspace I\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3308/contexts/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3308",
+							"path": [
+								"contexts",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Inactive a context",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3308/contexts/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3308",
+							"path": [
+								"contexts",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
 							]
 						}
 					},
