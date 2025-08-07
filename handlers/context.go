@@ -157,6 +157,52 @@ func UpdateContext(c *gin.Context) {
 	)
 }
 
+func ActivateContext(c *gin.Context) {
+	contextIdStr := c.Param("id")
+	contextId, err := strconv.ParseUint(contextIdStr, 10, 32)
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
+		return
+	}
+
+	userId, exists := c.Get("sub")
+	if !exists {
+		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		return
+	}
+
+	status, message, _ := services.ActivateContext(userId.(uint), uint(contextId))
+	if status != 0 {
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		return
+	}
+
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Context activated successfully"}, []string{})
+}
+
+func DeactivateContext(c *gin.Context) {
+	contextIdStr := c.Param("id")
+	contextId, err := strconv.ParseUint(contextIdStr, 10, 32)
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
+		return
+	}
+
+	userId, exists := c.Get("sub")
+	if !exists {
+		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		return
+	}
+
+	status, message, _ := services.DeactivateContext(userId.(uint), uint(contextId))
+	if status != 0 {
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		return
+	}
+
+	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Context deactivated successfully"}, []string{})
+}
+
 func DeleteContext(c *gin.Context) {
 	contextIdStr := c.Param("id")
 	contextId, err := strconv.ParseUint(contextIdStr, 10, 32)
@@ -178,6 +224,41 @@ func DeleteContext(c *gin.Context) {
 	}
 
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Context deleted successfully"}, []string{})
+}
+
+func GetSelectedContext(c *gin.Context) {
+	userId, exists := c.Get("sub")
+	if !exists {
+		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		return
+	}
+
+	context, status, message, _ := services.GetSelectedContext(userId.(uint))
+	if status != 0 {
+		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		return
+	}
+
+	type ContextResponse struct {
+		Id          uint   `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Active      bool   `json:"active"`
+	}
+
+	selectedResp := ContextResponse{
+		Id:          context.Id,
+		Name:        context.Name,
+		Description: context.Description,
+		Active:      context.Active,
+	}
+
+	utils.SendJSON(
+		c,
+		http.StatusOK,
+		gin.H{"message": "Selected context retrieved successfully"},
+		[]ContextResponse{selectedResp},
+	)
 }
 
 func SelectContext(c *gin.Context) {
@@ -214,39 +295,4 @@ func SelectContext(c *gin.Context) {
 
 	services.SetJwtTokensCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Context selected successfully"}, []string{})
-}
-
-func GetSelectedContext(c *gin.Context) {
-	userId, exists := c.Get("sub")
-	if !exists {
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
-		return
-	}
-
-	context, status, message, _ := services.GetSelectedContext(userId.(uint))
-	if status != 0 {
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
-		return
-	}
-
-	type ContextResponse struct {
-		Id          uint   `json:"id"`
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Active      bool   `json:"active"`
-	}
-
-	selectedResp := ContextResponse{
-		Id:          context.Id,
-		Name:        context.Name,
-		Description: context.Description,
-		Active:      context.Active,
-	}
-
-	utils.SendJSON(
-		c,
-		http.StatusOK,
-		gin.H{"message": "Selected context retrieved successfully"},
-		[]ContextResponse{selectedResp},
-	)
 }

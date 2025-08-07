@@ -11,6 +11,18 @@ import (
 	"gorm.io/gorm"
 )
 
+func GetContextById(contextId uint) (*models.Context, int, string, error) {
+	var context models.Context
+	err := db.DB.First(&context, contextId).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, http.StatusNotFound, "Context not found", nil
+		}
+		return nil, http.StatusInternalServerError, "Database error", err
+	}
+	return &context, 0, "", nil
+}
+
 func CreateDefaultContext(userId uint) error {
 	context := models.Context{
 		Name:        "My Workspace",
@@ -115,6 +127,72 @@ func UpdateContext(userId uint, contextId uint, req validators.UpdateContextRequ
 	return context, 0, "", nil
 }
 
+func ActivateContext(userId uint, contextId uint) (int, string, error) {
+	context, status, message, err := GetContextById(contextId)
+	if status != 0 {
+		return status, message, err
+	}
+
+	if context.OwnerId != userId {
+		return http.StatusForbidden, "Access denied to this context", nil
+	}
+
+	if context.Active {
+		return http.StatusBadRequest, "Context is already active", nil
+	}
+
+	context.Active = true
+	if err := db.DB.Save(context).Error; err != nil {
+		return http.StatusInternalServerError, "Failed to activate context", err
+	}
+
+	return 0, "", nil
+}
+
+func DeactivateContext(userId uint, contextId uint) (int, string, error) {
+	context, status, message, err := GetContextById(contextId)
+	if status != 0 {
+		return status, message, err
+	}
+
+	if context.OwnerId != userId {
+		return http.StatusForbidden, "Access denied to this context", nil
+	}
+
+	if !context.Active {
+		return http.StatusBadRequest, "Context is already inactive", nil
+	}
+
+	selectedContext, _, _, _ := GetSelectedContext(userId)
+	if selectedContext != nil && selectedContext.Id == contextId {
+		err = db.DB.Model(&models.UserContext{}).
+			Where("user_id = ? AND context_id = ?", userId, contextId).
+			Update("selected", false).Error
+		if err != nil {
+			return http.StatusInternalServerError, "Failed to deselect context", err
+		}
+
+		var userContext models.UserContext
+		err = db.DB.Joins("JOIN contexts ON contexts.id = user_contexts.context_id").
+			Where("user_contexts.user_id = ? AND contexts.active = ? AND contexts.id != ?", userId, true, contextId).
+			First(&userContext).Error
+
+		if err == nil {
+			err = db.DB.Model(&userContext).Update("selected", true).Error
+			if err != nil {
+				return http.StatusInternalServerError, "Failed to select alternative context", err
+			}
+		}
+	}
+
+	context.Active = false
+	if err := db.DB.Save(context).Error; err != nil {
+		return http.StatusInternalServerError, "Failed to deactivate context", err
+	}
+
+	return 0, "", nil
+}
+
 func DeleteContext(userId uint, contextId uint) (int, string, error) {
 	context, status, message, err := GetContextById(contextId)
 	if status != 0 {
@@ -129,10 +207,8 @@ func DeleteContext(userId uint, contextId uint) (int, string, error) {
 		return http.StatusBadRequest, "Context is already inactive", nil
 	}
 
-	// Check if this is the selected context
 	selectedContext, _, _, _ := GetSelectedContext(userId)
 	if selectedContext != nil && selectedContext.Id == contextId {
-		// Deselect this context
 		err = db.DB.Model(&models.UserContext{}).
 			Where("user_id = ? AND context_id = ?", userId, contextId).
 			Update("selected", false).Error
@@ -140,14 +216,12 @@ func DeleteContext(userId uint, contextId uint) (int, string, error) {
 			return http.StatusInternalServerError, "Failed to deselect context", err
 		}
 
-		// Try to select another active context
 		var userContext models.UserContext
 		err = db.DB.Joins("JOIN contexts ON contexts.id = user_contexts.context_id").
 			Where("user_contexts.user_id = ? AND contexts.active = ? AND contexts.id != ?", userId, true, contextId).
 			First(&userContext).Error
 
 		if err == nil {
-			// Select the first available active context
 			err = db.DB.Model(&userContext).Update("selected", true).Error
 			if err != nil {
 				return http.StatusInternalServerError, "Failed to select alternative context", err
@@ -155,7 +229,6 @@ func DeleteContext(userId uint, contextId uint) (int, string, error) {
 		}
 	}
 
-	// Inactivate the context
 	context.Active = false
 	if err := db.DB.Save(context).Error; err != nil {
 		return http.StatusInternalServerError, "Failed to inactivate context", err
@@ -165,7 +238,6 @@ func DeleteContext(userId uint, contextId uint) (int, string, error) {
 }
 
 func SelectContext(userId uint, contextId uint) (int, string, error) {
-	// Check if context exists and is active
 	context, status, message, err := GetContextById(contextId)
 	if status != 0 {
 		return status, message, err
@@ -175,7 +247,6 @@ func SelectContext(userId uint, contextId uint) (int, string, error) {
 		return http.StatusBadRequest, "Cannot select inactive context", nil
 	}
 
-	// Check if user has access to this context
 	var userContext models.UserContext
 	err = db.DB.Where("user_id = ? AND context_id = ?", userId, contextId).First(&userContext).Error
 	if err != nil {
@@ -185,7 +256,6 @@ func SelectContext(userId uint, contextId uint) (int, string, error) {
 		return http.StatusInternalServerError, "Database error", err
 	}
 
-	// Deselect all contexts for this user
 	err = db.DB.Model(&models.UserContext{}).
 		Where("user_id = ?", userId).
 		Update("selected", false).Error
@@ -193,7 +263,6 @@ func SelectContext(userId uint, contextId uint) (int, string, error) {
 		return http.StatusInternalServerError, "Failed to deselect current context", err
 	}
 
-	// Select the new context
 	err = db.DB.Model(&userContext).Update("selected", true).Error
 	if err != nil {
 		return http.StatusInternalServerError, "Failed to select context", err
@@ -210,16 +279,4 @@ func HasContextAccess(userId uint, contextId uint) bool {
 		Count(&count)
 
 	return count > 0
-}
-
-func GetContextById(contextId uint) (*models.Context, int, string, error) {
-	var context models.Context
-	err := db.DB.First(&context, contextId).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, http.StatusNotFound, "Context not found", nil
-		}
-		return nil, http.StatusInternalServerError, "Database error", err
-	}
-	return &context, 0, "", nil
 }
