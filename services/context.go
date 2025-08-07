@@ -163,6 +163,18 @@ func DeactivateContext(userId uint, contextId uint) (int, string, error) {
 		return http.StatusBadRequest, "Context is already inactive", nil
 	}
 
+	var activeContextCount int64
+	err = db.DB.Model(&models.Context{}).
+		Where("owner_id = ? AND active = ?", userId, true).
+		Count(&activeContextCount).Error
+	if err != nil {
+		return http.StatusInternalServerError, "Failed to count active contexts", err
+	}
+
+	if activeContextCount <= 1 {
+		return http.StatusBadRequest, "Cannot deactivate the only active context", nil
+	}
+
 	selectedContext, _, _, _ := GetSelectedContext(userId)
 	if selectedContext != nil && selectedContext.Id == contextId {
 		err = db.DB.Model(&models.UserContext{}).
@@ -176,7 +188,6 @@ func DeactivateContext(userId uint, contextId uint) (int, string, error) {
 		err = db.DB.Joins("JOIN contexts ON contexts.id = user_contexts.context_id").
 			Where("user_contexts.user_id = ? AND contexts.active = ? AND contexts.id != ?", userId, true, contextId).
 			First(&userContext).Error
-
 		if err == nil {
 			err = db.DB.Model(&userContext).Update("selected", true).Error
 			if err != nil {
@@ -203,8 +214,8 @@ func DeleteContext(userId uint, contextId uint) (int, string, error) {
 		return http.StatusForbidden, "Access denied to this context", nil
 	}
 
-	if !context.Active {
-		return http.StatusBadRequest, "Context is already inactive", nil
+	if context.Active {
+		return http.StatusBadRequest, "Cannot delete active context. Deactivate it first", nil
 	}
 
 	selectedContext, _, _, _ := GetSelectedContext(userId)
@@ -218,9 +229,8 @@ func DeleteContext(userId uint, contextId uint) (int, string, error) {
 
 		var userContext models.UserContext
 		err = db.DB.Joins("JOIN contexts ON contexts.id = user_contexts.context_id").
-			Where("user_contexts.user_id = ? AND contexts.active = ? AND contexts.id != ?", userId, true, contextId).
+			Where("user_contexts.user_id = ? AND contexts.active = ?", userId, true).
 			First(&userContext).Error
-
 		if err == nil {
 			err = db.DB.Model(&userContext).Update("selected", true).Error
 			if err != nil {
@@ -229,12 +239,17 @@ func DeleteContext(userId uint, contextId uint) (int, string, error) {
 		}
 	}
 
-	context.Active = false
-	if err := db.DB.Save(context).Error; err != nil {
-		return http.StatusInternalServerError, "Failed to inactivate context", err
+	err = db.DB.Where("context_id = ?", contextId).Delete(&models.UserContext{}).Error
+	if err != nil {
+		return http.StatusInternalServerError, "Failed to remove user associations", err
 	}
 
-	return 0, "", nil
+	err = db.DB.Delete(context).Error
+	if err != nil {
+		return http.StatusInternalServerError, "Failed to delete context", err
+	}
+
+	return 0, "Context deleted successfully", nil
 }
 
 func SelectContext(userId uint, contextId uint) (int, string, error) {
