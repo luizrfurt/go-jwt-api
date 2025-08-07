@@ -28,9 +28,9 @@ var (
 )
 
 type Claims struct {
-	Id        uint   `json:"id"`
-	ContextId uint   `json:"context_id"`
-	TokenType string `json:"token_type"`
+	Sub uint   `json:"sub"`
+	Ctx uint   `json:"ctx"`
+	Typ string `json:"typ"`
 	jwt.RegisteredClaims
 }
 
@@ -264,16 +264,16 @@ func RefreshPair(refreshTokenStr string) (accessToken, refreshToken string, acce
 		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Invalid token", nil
 	}
 
-	if claims.TokenType != "xrefresh" {
+	if claims.Typ != "xrefresh" {
 		return "", "", time.Time{}, time.Time{}, http.StatusUnauthorized, "Invalid token type", nil
 	}
 
-	user, status, message, err := FindUserById(claims.Id)
+	user, status, message, err := FindUserById(claims.Sub)
 	if status != 0 {
 		return "", "", time.Time{}, time.Time{}, status, message, err
 	}
 
-	contextId := claims.ContextId
+	contextId := claims.Ctx
 
 	if contextId != 0 {
 		if !HasContextAccess(user.Id, contextId) {
@@ -304,7 +304,7 @@ func ValidateAccessToken(tokenStr string) (*Claims, int, string, error) {
 		return nil, http.StatusUnauthorized, "Invalid token", nil
 	}
 
-	if claims.TokenType != "xaccess" {
+	if claims.Typ != "xaccess" {
 		return nil, http.StatusUnauthorized, "Invalid token type", nil
 	}
 
@@ -316,9 +316,9 @@ func generateTokenPair(id uint, contextId uint) (accessToken, refreshToken strin
 
 	accessExpiration = now.Add(15 * time.Minute)
 	accessClaims := &Claims{
-		Id:        id,
-		ContextId: contextId,
-		TokenType: "xaccess",
+		Sub: id,
+		Ctx: contextId,
+		Typ: "xaccess",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(accessExpiration),
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -333,9 +333,9 @@ func generateTokenPair(id uint, contextId uint) (accessToken, refreshToken strin
 
 	refreshExpiration = now.Add(7 * 24 * time.Hour)
 	refreshClaims := &Claims{
-		Id:        id,
-		ContextId: contextId,
-		TokenType: "xrefresh",
+		Sub: id,
+		Ctx: contextId,
+		Typ: "xrefresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(refreshExpiration),
 			IssuedAt:  jwt.NewNumericDate(now),
