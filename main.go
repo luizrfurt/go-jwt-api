@@ -28,7 +28,7 @@ func main() {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:" + portWeb},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-CSRF-Token"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
