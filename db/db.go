@@ -32,6 +32,7 @@ func InitDBConfig() {
 		&models.User{},
 		&models.Context{},
 		&models.UserContext{},
+		&models.AuditLog{},
 	)
 	if err != nil {
 		log.Fatal("Failed to auto-migrate database:", err)

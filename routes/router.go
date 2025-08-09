@@ -8,4 +8,5 @@ import (
 func SetupRoutes(r *gin.Engine) {
 	RegisterAuthRoutes(r)
 	RegisterContextRoutes(r)
+	RegisterAuditRoutes(r)
 }
