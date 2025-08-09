@@ -30,7 +30,7 @@ func SendJSON(c *gin.Context, status int, content interface{}, data interface{})
 	contentStruct := buildContentResponse(content, data)
 	c.JSON(status, Response{
 		Content: contentStruct,
-		Meta:    Meta{Timestamp: time.Now().Format(time.RFC3339)},
+		Meta:    buildMeta(c, status),
 	})
 }
 
@@ -38,7 +38,7 @@ func SendJSONError(c *gin.Context, status int, content interface{}, data interfa
 	contentStruct := buildContentResponse(content, data)
 	c.JSON(status, Response{
 		Content: contentStruct,
-		Meta:    Meta{Timestamp: time.Now().Format(time.RFC3339)},
+		Meta:    buildMeta(c, status),
 	})
 }
 
@@ -92,6 +92,12 @@ func buildContentResponse(content interface{}, data interface{}) ContentResponse
 	}
 
 	return result
+}
+
+func buildMeta(c *gin.Context, status int) Meta {
+	return Meta{
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
 }
 
 func toMap(content interface{}) map[string]interface{} {
