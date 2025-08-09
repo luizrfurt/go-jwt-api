@@ -465,6 +465,31 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Audit",
+			"item": [
+				{
+					"name": "Get all logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3308/audit/logs",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3308",
+							"path": [
+								"audit",
+								"logs"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
