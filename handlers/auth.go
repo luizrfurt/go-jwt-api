@@ -4,12 +4,10 @@ package handlers
 import (
 	"fmt"
 	"go-jwt-api/config"
-	"go-jwt-api/middlewares"
 	"go-jwt-api/services"
 	"go-jwt-api/utils"
 	"go-jwt-api/validators"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -45,61 +43,27 @@ func SignUp(c *gin.Context) {
 func SignIn(c *gin.Context) {
 	var req validators.SignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		middlewares.SetAuditData(c, "user_login_attempt", nil, nil, map[string]interface{}{
-			"email":  "invalid_request",
-			"reason": "invalid_json",
-			"error":  err.Error(),
-		})
-
 		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid signin request"}, []string{})
 		return
 	}
 
 	if validationErrors := validators.ValidateStruct(req); validationErrors != nil {
-		middlewares.SetAuditData(c, "user_login_attempt", nil, nil, map[string]interface{}{
-			"email":             req.Email,
-			"reason":            "validation_failed",
-			"validation_errors": validationErrors,
-		})
-
 		utils.SendJSON(c, http.StatusBadRequest, gin.H{"validation_errors": validationErrors}, []string{})
 		return
 	}
 
 	user, status, message, _ := services.FindUserByEmail(req.Email)
 	if status != 0 {
-		middlewares.SetAuditData(c, "user_login_failed", nil, nil, map[string]interface{}{
-			"email":  req.Email,
-			"reason": "user_not_found",
-			"error":  message,
-		})
-
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
-
 	if config.AppConfig.Environment == "production" && !user.EmailVerified {
-		userIdStr := strconv.FormatUint(uint64(user.Id), 10)
-		middlewares.SetAuditData(c, "user_login_failed", &userIdStr, nil, map[string]interface{}{
-			"email":   req.Email,
-			"reason":  "email_not_verified",
-			"user_id": user.Id,
-		})
-
 		utils.SendJSONError(c, http.StatusUnauthorized, gin.H{"error": "Email not verified, please check your inbox to confirm your email address."}, []string{})
 		return
 	}
 
 	accessToken, refreshToken, accessExpiration, refreshExpiration, status, message, _ := services.AuthenticateUser(req.Email, req.Password)
 	if status != 0 {
-		userIdStr := strconv.FormatUint(uint64(user.Id), 10)
-		middlewares.SetAuditData(c, "user_login_failed", &userIdStr, nil, map[string]interface{}{
-			"email":   req.Email,
-			"reason":  "invalid_credentials",
-			"user_id": user.Id,
-			"error":   message,
-		})
-
 		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
 		return
 	}
@@ -130,22 +94,6 @@ func SignIn(c *gin.Context) {
 			IsSelected:  isSelected,
 		})
 	}
-
-	userIdStr := strconv.FormatUint(uint64(user.Id), 10)
-	var selectedContextId *uint
-	if selectedContext != nil {
-		selectedContextId = &selectedContext.Id
-	}
-
-	middlewares.SetAuditData(c, "user_login_success", &userIdStr, nil, map[string]interface{}{
-		"email":            req.Email,
-		"user_id":          user.Id,
-		"user_name":        user.Name,
-		"selected_context": selectedContextId,
-		"contexts_count":   len(contextResponse),
-		"email_verified":   user.EmailVerified,
-		"token_expires_at": accessExpiration.Format(time.RFC3339),
-	})
 
 	services.SetJwtTokensCookies(c, accessToken, refreshToken, accessExpiration, refreshExpiration)
 	utils.SendJSON(c, http.StatusOK, gin.H{

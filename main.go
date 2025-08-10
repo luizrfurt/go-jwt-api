@@ -25,7 +25,6 @@ func main() {
 	portWeb := config.AppConfig.PortWeb
 
 	r.Use(middlewares.SecurityHeaders())
-	r.Use(middlewares.AuditMiddleware())
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:" + portWeb},
