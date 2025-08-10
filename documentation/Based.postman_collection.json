@@ -92,7 +92,7 @@
 					"response": []
 				},
 				{
-					"name": "Me",
+					"name": "Get me",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},

@@ -120,7 +120,7 @@ func Refresh(c *gin.Context) {
 	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Refreshed successfully"}, []string{})
 }
 
-func Me(c *gin.Context) {
+func GetMe(c *gin.Context) {
 	id, exists := c.Get("sub")
 	if !exists {
 		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})

@@ -26,7 +26,7 @@ func RegisterAuthRoutes(r *gin.Engine) {
 		protected := authGroup.Group("/")
 		protected.Use(middlewares.AuthMiddleware(), middlewares.CSRFMiddleware())
 		{
-			protected.GET("/me", handlers.Me)
+			protected.GET("/me", handlers.GetMe)
 			protected.PUT("/me", handlers.UpdateMe)
 		}
 
