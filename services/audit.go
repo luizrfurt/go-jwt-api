@@ -230,18 +230,13 @@ func structToMap(obj interface{}) map[string]interface{} {
 	return result
 }
 
-func GetAuditLogs(userId *uint) ([]models.AuditLog, int64, error) {
+func GetAuditLogs(contextId *uint) ([]models.AuditLog, error) {
 	var logs []models.AuditLog
-	var total int64
 
-	query := db.DB.Model(&models.AuditLog{})
-
-	query = query.Where("user_id = ?", *userId)
-
-	query.Count(&total)
-
-	err := query.Order("created_at DESC").
+	err := db.DB.Model(&models.AuditLog{}).
+		Where("context_id = ?", *contextId).
+		Order("id ASC").
 		Find(&logs).Error
 
-	return logs, total, err
+	return logs, err
 }

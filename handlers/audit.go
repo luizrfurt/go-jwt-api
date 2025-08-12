@@ -2,37 +2,69 @@
 package handlers
 
 import (
-	"go-jwt-api/models"
 	"go-jwt-api/services"
 	"go-jwt-api/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetAuditLogs(c *gin.Context) {
-	userId, exists := c.Get("sub")
+	contextId, exists := c.Get("ctx")
 	if !exists {
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User Id not found in context"}, []string{})
+		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Context not found"}, []string{})
 		return
 	}
-	userIdUint := userId.(uint)
+	contextIdUint := contextId.(uint)
 
-	logs, total, err := services.GetAuditLogs(&userIdUint)
+	logs, err := services.GetAuditLogs(&contextIdUint)
 	if err != nil {
 		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Failed to retrieve audit logs"}, []string{})
 		return
 	}
 
-	type AuditResponse struct {
-		Logs  []models.AuditLog `json:"logs"`
-		Total int               `json:"total"`
+	type AuditLogResponse struct {
+		Id         uint      `json:"id"`
+		UserId     *uint     `json:"user_id"`
+		ContextId  *uint     `json:"context_id"`
+		Action     string    `json:"action"`
+		Route      string    `json:"route"`
+		Method     string    `json:"method"`
+		ResourceId *string   `json:"resource_id"`
+		IPAddress  string    `json:"ip_address"`
+		UserAgent  string    `json:"user_agent"`
+		Status     int       `json:"status"`
+		Success    bool      `json:"success"`
+		Duration   int64     `json:"duration_ms"`
+		CreatedAt  time.Time `json:"created_at"`
+		UpdatedAt  time.Time `json:"updated_at"`
 	}
 
-	response := AuditResponse{
-		Logs:  logs,
-		Total: int(total),
+	var auditResp []AuditLogResponse
+	for _, log := range logs {
+		auditResp = append(auditResp, AuditLogResponse{
+			Id:         log.Id,
+			UserId:     log.UserId,
+			ContextId:  log.ContextId,
+			Action:     log.Action,
+			Route:      log.Route,
+			Method:     log.Method,
+			ResourceId: log.ResourceId,
+			IPAddress:  log.IPAddress,
+			UserAgent:  log.UserAgent,
+			Status:     log.Status,
+			Success:    log.Success,
+			Duration:   log.Duration,
+			CreatedAt:  log.CreatedAt,
+			UpdatedAt:  log.UpdatedAt,
+		})
 	}
 
-	utils.SendJSON(c, http.StatusOK, gin.H{"message": "Audit logs retrieved successfully"}, []AuditResponse{response})
+	utils.SendJSON(
+		c,
+		http.StatusOK,
+		gin.H{"message": "Audit logs retrieved successfully"},
+		auditResp,
+	)
 }
