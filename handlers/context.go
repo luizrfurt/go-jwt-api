@@ -20,7 +20,7 @@ func GetMyContexts(c *gin.Context) {
 			"reason": "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -33,7 +33,7 @@ func GetMyContexts(c *gin.Context) {
 			"error":   message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -93,7 +93,7 @@ func CreateContext(c *gin.Context) {
 			})
 		}
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid create context request"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid create context request"}, []string{})
 		return
 	}
 
@@ -120,7 +120,7 @@ func CreateContext(c *gin.Context) {
 			"reason": "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -135,7 +135,7 @@ func CreateContext(c *gin.Context) {
 			"error":       message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -187,7 +187,7 @@ func UpdateContext(c *gin.Context) {
 			})
 		}
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
 		return
 	}
 
@@ -204,7 +204,7 @@ func UpdateContext(c *gin.Context) {
 			})
 		}
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid update context request"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid update context request"}, []string{})
 		return
 	}
 
@@ -233,7 +233,7 @@ func UpdateContext(c *gin.Context) {
 			"reason":     "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -258,7 +258,7 @@ func UpdateContext(c *gin.Context) {
 			"error":       message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -306,7 +306,7 @@ func ActivateContext(c *gin.Context) {
 			})
 		}
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
 		return
 	}
 
@@ -317,7 +317,7 @@ func ActivateContext(c *gin.Context) {
 			"reason":     "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -331,7 +331,7 @@ func ActivateContext(c *gin.Context) {
 			"error":      message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -359,7 +359,7 @@ func DeactivateContext(c *gin.Context) {
 			})
 		}
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
 		return
 	}
 
@@ -370,7 +370,7 @@ func DeactivateContext(c *gin.Context) {
 			"reason":     "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -384,7 +384,7 @@ func DeactivateContext(c *gin.Context) {
 			"error":      message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -412,7 +412,7 @@ func DeleteContext(c *gin.Context) {
 			})
 		}
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
 		return
 	}
 
@@ -423,7 +423,7 @@ func DeleteContext(c *gin.Context) {
 			"reason":     "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -448,7 +448,7 @@ func DeleteContext(c *gin.Context) {
 			"error":      message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -468,7 +468,7 @@ func GetSelectedContext(c *gin.Context) {
 			"reason": "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -481,7 +481,7 @@ func GetSelectedContext(c *gin.Context) {
 			"error":   message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -530,7 +530,7 @@ func SelectContext(c *gin.Context) {
 			})
 		}
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid context ID"}, []string{})
 		return
 	}
 
@@ -541,7 +541,7 @@ func SelectContext(c *gin.Context) {
 			"reason":     "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -564,7 +564,7 @@ func SelectContext(c *gin.Context) {
 			"error":      message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -584,7 +584,7 @@ func SelectContext(c *gin.Context) {
 			"error":      message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 

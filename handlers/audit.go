@@ -13,14 +13,14 @@ import (
 func GetAuditLogs(c *gin.Context) {
 	contextId, exists := c.Get("ctx")
 	if !exists {
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Context not found"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "Context not found"}, []string{})
 		return
 	}
 	contextIdUint := contextId.(uint)
 
 	logs, err := services.GetAuditLogs(&contextIdUint)
 	if err != nil {
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Failed to retrieve audit logs"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "Failed to retrieve audit logs"}, []string{})
 		return
 	}
 

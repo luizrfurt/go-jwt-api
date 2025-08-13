@@ -25,7 +25,7 @@ func CSRFMiddleware() gin.HandlerFunc {
 
 		csrfCookie, err := c.Cookie("session.xcsrf")
 		if err != nil {
-			utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
+			utils.SendJSON(c, http.StatusUnauthorized, gin.H{
 				"error": "CSRF token missing",
 			}, []string{})
 			c.Abort()
@@ -34,7 +34,7 @@ func CSRFMiddleware() gin.HandlerFunc {
 
 		csrfHeader := c.GetHeader("X-CSRF-Token")
 		if csrfHeader == "" || csrfHeader != csrfCookie {
-			utils.SendJSONError(c, http.StatusUnauthorized, gin.H{
+			utils.SendJSON(c, http.StatusUnauthorized, gin.H{
 				"error": "Invalid CSRF token",
 			}, []string{})
 			c.Abort()

@@ -24,7 +24,7 @@ func SignUp(c *gin.Context) {
 			"error":  err.Error(),
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid signup request"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid signup request"}, []string{})
 		return
 	}
 
@@ -48,7 +48,7 @@ func SignUp(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -81,7 +81,7 @@ func SignIn(c *gin.Context) {
 			"error":  err.Error(),
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid signin request"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid signin request"}, []string{})
 		return
 	}
 
@@ -104,7 +104,7 @@ func SignIn(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -116,7 +116,7 @@ func SignIn(c *gin.Context) {
 			"user_id": user.Id,
 		})
 
-		utils.SendJSONError(c, http.StatusUnauthorized, gin.H{"error": "Email not verified, please check your inbox to confirm your email address."}, []string{})
+		utils.SendJSON(c, http.StatusUnauthorized, gin.H{"error": "Email not verified, please check your inbox to confirm your email address."}, []string{})
 		return
 	}
 
@@ -130,7 +130,7 @@ func SignIn(c *gin.Context) {
 			"error":   message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -192,7 +192,7 @@ func Refresh(c *gin.Context) {
 			"error":  err.Error(),
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Refresh token not provided"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Refresh token not provided"}, []string{})
 		return
 	}
 
@@ -204,7 +204,7 @@ func Refresh(c *gin.Context) {
 		})
 
 		services.ClearTokensCookies(c)
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -233,7 +233,7 @@ func GetMe(c *gin.Context) {
 			"reason": "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User not found in context"}, []string{})
 		return
 	}
 
@@ -246,7 +246,7 @@ func GetMe(c *gin.Context) {
 			"error":   message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -294,7 +294,7 @@ func UpdateMe(c *gin.Context) {
 			})
 		}
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid update me request"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid update me request"}, []string{})
 		return
 	}
 
@@ -319,7 +319,7 @@ func UpdateMe(c *gin.Context) {
 			"reason": "user_not_in_context",
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "User Id not found in context"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "User Id not found in context"}, []string{})
 		return
 	}
 
@@ -343,7 +343,7 @@ func UpdateMe(c *gin.Context) {
 			"error":   message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -408,7 +408,7 @@ func VerifyEmail(c *gin.Context) {
 			"error":  err.Error(),
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid verify email request"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid verify email request"}, []string{})
 		return
 	}
 
@@ -431,7 +431,7 @@ func VerifyEmail(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -446,7 +446,7 @@ func VerifyEmail(c *gin.Context) {
 				"error":   message,
 			})
 
-			utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+			utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 			return
 		}
 
@@ -459,7 +459,7 @@ func VerifyEmail(c *gin.Context) {
 				"error":   err.Error(),
 			})
 
-			utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"}, []string{})
+			utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"}, []string{})
 			return
 		}
 
@@ -480,7 +480,7 @@ func VerifyEmail(c *gin.Context) {
 			"reason":  "email_already_verified",
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Email %s already verified", user.Email)}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Email %s already verified", user.Email)}, []string{})
 	}
 }
 
@@ -491,7 +491,7 @@ func VerificationEmailValidToken(c *gin.Context) {
 			"reason": "token_not_provided",
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
 		return
 	}
 
@@ -503,7 +503,7 @@ func VerificationEmailValidToken(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -523,7 +523,7 @@ func ForgotPassword(c *gin.Context) {
 			"error":  err.Error(),
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid forgot password request"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid forgot password request"}, []string{})
 		return
 	}
 
@@ -546,7 +546,7 @@ func ForgotPassword(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -560,7 +560,7 @@ func ForgotPassword(c *gin.Context) {
 			"error":   message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -573,7 +573,7 @@ func ForgotPassword(c *gin.Context) {
 			"error":   err.Error(),
 		})
 
-		utils.SendJSONError(c, http.StatusInternalServerError, gin.H{"error": "Failed to send recovery email"}, []string{})
+		utils.SendJSON(c, http.StatusInternalServerError, gin.H{"error": "Failed to send recovery email"}, []string{})
 		return
 	}
 
@@ -595,7 +595,7 @@ func ResetPasswordValidToken(c *gin.Context) {
 			"reason": "token_not_provided",
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
 		return
 	}
 
@@ -607,7 +607,7 @@ func ResetPasswordValidToken(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -617,7 +617,7 @@ func ResetPasswordValidToken(c *gin.Context) {
 			"reason": "invalid_or_expired_token",
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid or expired token"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid or expired token"}, []string{})
 		return
 	}
 
@@ -635,7 +635,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 			"reason": "token_not_provided",
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Token is required"}, []string{})
 		return
 	}
 
@@ -647,7 +647,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -657,7 +657,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 			"reason": "invalid_or_expired_token",
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid or expired token"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid or expired token"}, []string{})
 		return
 	}
 
@@ -669,7 +669,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 			"error":  err.Error(),
 		})
 
-		utils.SendJSONError(c, http.StatusBadRequest, gin.H{"error": "Invalid reset password request"}, []string{})
+		utils.SendJSON(c, http.StatusBadRequest, gin.H{"error": "Invalid reset password request"}, []string{})
 		return
 	}
 
@@ -691,7 +691,7 @@ func ResetPasswordChangePassword(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 
@@ -710,7 +710,7 @@ func GetCsrfToken(c *gin.Context) {
 			"error":  message,
 		})
 
-		utils.SendJSONError(c, status, gin.H{"error": message}, []string{})
+		utils.SendJSON(c, status, gin.H{"error": message}, []string{})
 		return
 	}
 

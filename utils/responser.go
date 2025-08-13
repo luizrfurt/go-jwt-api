@@ -34,14 +34,6 @@ func SendJSON(c *gin.Context, status int, content interface{}, data interface{})
 	})
 }
 
-func SendJSONError(c *gin.Context, status int, content interface{}, data interface{}) {
-	contentStruct := buildContentResponse(content, data)
-	c.JSON(status, Response{
-		Content: contentStruct,
-		Meta:    buildMeta(c, status),
-	})
-}
-
 func buildContentResponse(content interface{}, data interface{}) ContentResponse {
 	result := ContentResponse{Data: data, Extra: make(map[string]interface{})}
 
