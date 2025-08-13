@@ -15,7 +15,7 @@ type Meta struct {
 type ContentResponse struct {
 	Message          string                 `json:"message,omitempty"`
 	Error            string                 `json:"error,omitempty"`
-	ValidationErrors map[string]string      `json:"validation_errors,omitempty"`
+	ValidationErrors []map[string]string    `json:"validation_errors,omitempty"`
 	User             interface{}            `json:"user,omitempty"`
 	Data             interface{}            `json:"data"`
 	Extra            map[string]interface{} `json:"-"`
@@ -50,7 +50,7 @@ func buildContentResponse(content interface{}, data interface{}) ContentResponse
 					result.Error = err
 				}
 			case "validation_errors":
-				if validationErrs, ok := value.(map[string]string); ok {
+				if validationErrs, ok := value.([]map[string]string); ok {
 					result.ValidationErrors = validationErrs
 				}
 			case "user":
@@ -72,7 +72,7 @@ func buildContentResponse(content interface{}, data interface{}) ContentResponse
 					result.Error = err
 				}
 			case "validation_errors":
-				if validationErrs, ok := value.(map[string]string); ok {
+				if validationErrs, ok := value.([]map[string]string); ok {
 					result.ValidationErrors = validationErrs
 				}
 			case "user":

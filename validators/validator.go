@@ -14,16 +14,18 @@ func init() {
 	validate = validator.New()
 }
 
-func ValidateStruct(data interface{}) map[string]string {
+func ValidateStruct(data interface{}) []map[string]string {
 	err := validate.Struct(data)
 	if err == nil {
 		return nil
 	}
 
-	errors := make(map[string]string)
-	for _, err := range err.(validator.ValidationErrors) {
-		jsonFieldName := getJSONFieldName(data, err.Field())
-		errors[err.Field()] = generateErrorMessage(err, jsonFieldName)
+	var errors []map[string]string
+	for _, e := range err.(validator.ValidationErrors) {
+		jsonFieldName := getJSONFieldName(data, e.Field())
+		errors = append(errors, map[string]string{
+			e.Field(): generateErrorMessage(e, jsonFieldName),
+		})
 	}
 	return errors
 }
