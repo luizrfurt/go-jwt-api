@@ -125,6 +125,8 @@ func determineAction(method, route string) string {
 			return "password_reset"
 		} else if strings.Contains(route, "select") {
 			return "context_select"
+		} else if strings.Contains(route, "task") {
+			return "task_create"
 		}
 		return "create"
 
@@ -137,6 +139,8 @@ func determineAction(method, route string) string {
 			return "user_update"
 		} else if strings.Contains(route, "context") {
 			return "context_update"
+		} else if strings.Contains(route, "task") {
+			return "task_update"
 		}
 		return "update"
 
@@ -145,6 +149,8 @@ func determineAction(method, route string) string {
 			return "context_delete"
 		} else if strings.Contains(route, "signout") {
 			return "user_logout"
+		} else if strings.Contains(route, "task") {
+			return "task_delete"
 		}
 		return "delete"
 
@@ -155,6 +161,8 @@ func determineAction(method, route string) string {
 			return "context_view"
 		} else if strings.Contains(route, "csrf-token") {
 			return "csrf_token_request"
+		} else if strings.Contains(route, "task") {
+			return "task_list_view"
 		}
 		return "read"
 
