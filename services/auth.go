@@ -177,7 +177,7 @@ func RegisterUser(req validators.SignUpRequest) (int, string, error) {
 		return status, message, err
 	}
 	if status == 0 {
-		return http.StatusBadRequest, "Email already exists", nil
+		return http.StatusBadRequest, "Email is already in use", nil
 	}
 
 	return createUser(req)
@@ -195,7 +195,7 @@ func UpdateUser(userId uint, req validators.UpdateMeRequest) (*models.User, int,
 			return nil, status, message, err
 		}
 		if status == 0 {
-			return nil, http.StatusBadRequest, "Email already exists", nil
+			return nil, http.StatusBadRequest, "Email is already in use", nil
 		}
 	}
 
